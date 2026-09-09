@@ -1,0 +1,6 @@
+# Minimal dynamic config enabling standard (SQL-backed) visibility,
+# required when auto-setup runs against PostgreSQL rather than Elasticsearch.
+# Mirrors Temporal's own docker-compose reference config for the sql-visibility case.
+system.forceSearchAttributesCacheRefreshOnRead:
+  - value: true
+    constraints: {}

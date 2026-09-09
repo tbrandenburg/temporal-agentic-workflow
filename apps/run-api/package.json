@@ -5,7 +5,13 @@
   "main": "dist/server.js",
   "types": "dist/server.d.ts",
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@poc/workflows": "workspace:*",
+    "@temporalio/client": "1.23.0",
+    "fastify": "5.12.3"
   },
   "devDependencies": {
     "typescript": "5.9.3"

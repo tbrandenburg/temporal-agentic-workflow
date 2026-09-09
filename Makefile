@@ -16,24 +16,36 @@ schemas: ## regenerate schemas/ from Zod
 	@echo "not yet implemented: Phase 2 adds packages/agent-contracts/scripts/emit-json-schema.ts"
 
 up: ## docker compose up -d + wait-healthy + register search attributes
-	@echo "not yet implemented: Phase 1 adds infra/temporal/docker-compose.yaml"
+	docker compose -f infra/temporal/docker-compose.yaml up -d
+	@echo "waiting for temporal frontend to accept connections..."
+	@for i in $$(seq 1 60); do \
+		if docker compose -f infra/temporal/docker-compose.yaml exec -T temporal-admin-tools tctl cluster health >/dev/null 2>&1; then \
+			echo "temporal is healthy"; \
+			break; \
+		fi; \
+		sleep 2; \
+	done
+	./infra/temporal/register-search-attributes.sh
 
 down: ## docker compose down
-	@echo "not yet implemented: Phase 1 adds infra/temporal/docker-compose.yaml"
+	docker compose -f infra/temporal/docker-compose.yaml down
 
 worker: ## run agent-default worker (host)
-	@echo "not yet implemented: Phase 3 adds packages/worker/src/main.ts"
+	pnpm --filter @poc/worker exec node dist/main.js
 
 worker-val: ## run tool-validation worker (host)
 	@echo "not yet implemented: Phase 3 adds packages/worker/src/validation-worker.ts"
 
 api: ## run Run API on :3300
-	@echo "not yet implemented: Phase 1 wires apps/run-api/src/server.ts to Fastify"
+	pnpm --filter @poc/run-api exec node dist/server.js
 
-run: up api worker worker-val ## up + api + workers (dev convenience)
+run: up ## up + reminder to run api/worker in separate terminals (dev convenience)
+	@echo "stack is up. Run 'make worker' and 'make api' in separate terminals."
 
 stop: down ## stop host processes + compose down
-	@echo "not yet implemented: no host processes started yet"
+	@pkill -f 'packages/worker/dist/main.js' 2>/dev/null || true
+	@pkill -f 'apps/run-api/dist/server.js' 2>/dev/null || true
+
 
 e2e: ## all non-mocked gates G1..G5 against the live stack; GATE=n selects one
 	@echo "not yet implemented: Phase 1 adds e2e/gate-1-baseline.e2e.ts"

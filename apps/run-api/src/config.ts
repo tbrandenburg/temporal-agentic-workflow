@@ -1,8 +1,18 @@
-// Phase 0 placeholder. Env parsing (PORT default 3300) lands in Phase 1.
+// Env parsing (PORT default 3300). Phase 1.
 export interface Config {
   port: number;
+  temporalAddress: string;
+  temporalNamespace: string;
 }
 
 export function loadConfig(): Config {
-  return { port: 3300 };
+  const port = process.env.PORT ? Number(process.env.PORT) : 3300;
+  if (!Number.isFinite(port) || port <= 0) {
+    throw new Error(`invalid PORT: ${process.env.PORT}`);
+  }
+  return {
+    port,
+    temporalAddress: process.env.TEMPORAL_ADDRESS ?? 'localhost:7233',
+    temporalNamespace: process.env.TEMPORAL_NAMESPACE ?? 'default',
+  };
 }
