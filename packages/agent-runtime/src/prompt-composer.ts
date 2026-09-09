@@ -30,7 +30,17 @@ export function composePrompt(
   if (input.upstream && input.upstream.length > 0) {
     sections.push('', '## Upstream results');
     for (const result of input.upstream) {
-      sections.push(`- [${result.agent}] (${result.status}): ${result.summary}`);
+      // `upstream` is a union of `AgentResult` (has `.agent`/`.summary`) and
+      // `ValidationResult` (has neither) — the reviewer's upstream includes
+      // the validator's compact result per PLAN §5.1.
+      if ('agent' in result) {
+        sections.push(`- [${result.agent}] (${result.status}): ${result.summary}`);
+      } else {
+        const violationCount = result.violations.length;
+        sections.push(
+          `- [validation] (${result.status}): ${result.steps.length} step(s), ${violationCount} violation(s)`,
+        );
+      }
     }
   }
 

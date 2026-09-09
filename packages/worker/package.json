@@ -12,13 +12,20 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "start": "node dist/main.js"
+    "start": "node dist/main.js",
+    "start:validation": "node dist/validation-worker.js",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@poc/agent-contracts": "workspace:*",
+    "@poc/agent-runtime": "workspace:*",
+    "@poc/artifact-store": "workspace:*",
     "@poc/workflows": "workspace:*",
+    "@temporalio/activity": "1.23.0",
     "@temporalio/worker": "1.23.0"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "5.0.0"
   }
 }

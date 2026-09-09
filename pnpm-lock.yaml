@@ -180,7 +180,7 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 5.0.0
-        version: 5.0.0
+        version: 5.0.0(@types/node@24.13.3)(@vitest/coverage-v8@5.0.0)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.13))
 
   packages/agent-tools:
     devDependencies:
@@ -202,13 +202,25 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 5.0.0
-        version: 5.0.0
+        version: 5.0.0(@types/node@24.13.3)(@vitest/coverage-v8@5.0.0)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.13))
 
   packages/worker:
     dependencies:
+      '@poc/agent-contracts':
+        specifier: workspace:*
+        version: link:../agent-contracts
+      '@poc/agent-runtime':
+        specifier: workspace:*
+        version: link:../agent-runtime
+      '@poc/artifact-store':
+        specifier: workspace:*
+        version: link:../artifact-store
       '@poc/workflows':
         specifier: workspace:*
         version: link:../workflows
+      '@temporalio/activity':
+        specifier: 1.23.0
+        version: 1.23.0
       '@temporalio/worker':
         specifier: 1.23.0
         version: 1.23.0(lightningcss@1.33.0)(postcss@8.5.28)
@@ -216,16 +228,40 @@ importers:
       typescript:
         specifier: 5.9.3
         version: 5.9.3
+      vitest:
+        specifier: 5.0.0
+        version: 5.0.0(@types/node@24.13.3)(@vitest/coverage-v8@5.0.0)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.13))
 
   packages/workflows:
     dependencies:
+      '@poc/agent-contracts':
+        specifier: workspace:*
+        version: link:../agent-contracts
       '@temporalio/workflow':
         specifier: 1.23.0
         version: 1.23.0
     devDependencies:
+      '@temporalio/activity':
+        specifier: 1.23.0
+        version: 1.23.0
+      '@temporalio/client':
+        specifier: 1.23.0
+        version: 1.23.0
+      '@temporalio/common':
+        specifier: 1.23.0
+        version: 1.23.0
+      '@temporalio/testing':
+        specifier: 1.23.0
+        version: 1.23.0(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)
+      '@temporalio/worker':
+        specifier: 1.23.0
+        version: 1.23.0(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)
       typescript:
         specifier: 5.9.3
         version: 5.9.3
+      vitest:
+        specifier: 5.0.0
+        version: 5.0.0(@types/node@24.13.3)(@vitest/coverage-v8@5.0.0)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.13))
 
 packages:
 
@@ -983,6 +1019,10 @@ packages:
 
   '@temporalio/proto@1.23.0':
     resolution: {integrity: sha512-90JWnYEs1wyq97/SXkQGknRVMr/BCV9sZ0pOnK3fHTedVinfvz3/PBVFkeAJyU3CJqMQGnzRs9IIfsBTT1icrA==}
+    engines: {node: '>= 20.3.0'}
+
+  '@temporalio/testing@1.23.0':
+    resolution: {integrity: sha512-4e52YlZ+u6rCoDwsWJpDLfNwEoM2PM0KQXhbAOWc4DE2QsIuSD5ZrecQs4Ud7Z1BBzMTcFDmIyCjGw/O852QTw==}
     engines: {node: '>= 20.3.0'}
 
   '@temporalio/worker@1.23.0':
@@ -2630,6 +2670,75 @@ snapshots:
       long: 5.3.2
       protobufjs: 8.8.0
 
+  '@temporalio/testing@1.23.0(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)':
+    dependencies:
+      '@temporalio/activity': 1.23.0
+      '@temporalio/client': 1.23.0
+      '@temporalio/common': 1.23.0
+      '@temporalio/core-bridge': 1.23.0
+      '@temporalio/proto': 1.23.0
+      '@temporalio/worker': 1.23.0(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)
+      '@temporalio/workflow': 1.23.0
+    transitivePeerDependencies:
+      - '@minify-html/node'
+      - '@napi-rs/image'
+      - '@swc/css'
+      - '@swc/helpers'
+      - '@swc/html'
+      - clean-css
+      - cssnano
+      - csso
+      - esbuild
+      - html-minifier-terser
+      - imagemin
+      - lightningcss
+      - postcss
+      - sharp
+      - svgo
+      - uglify-js
+      - webpack-cli
+
+  '@temporalio/worker@1.23.0(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)':
+    dependencies:
+      '@grpc/grpc-js': 1.14.4
+      '@swc/core': 1.16.2
+      '@temporalio/activity': 1.23.0
+      '@temporalio/client': 1.23.0
+      '@temporalio/common': 1.23.0
+      '@temporalio/core-bridge': 1.23.0
+      '@temporalio/nexus': 1.23.0
+      '@temporalio/proto': 1.23.0
+      '@temporalio/workflow': 1.23.0
+      heap-js: 2.7.1
+      memfs: 4.71.0
+      nexus-rpc: 0.0.3
+      protobufjs: 8.8.0
+      rxjs: 7.8.2
+      source-map: 0.7.6
+      source-map-loader: 5.0.0(webpack@5.110.3(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28))
+      supports-color: 8.1.1
+      swc-loader: 0.2.7(@swc/core@1.16.2)(webpack@5.110.3(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28))
+      unionfs: 4.6.0
+      webpack: 5.110.3(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)
+    transitivePeerDependencies:
+      - '@minify-html/node'
+      - '@napi-rs/image'
+      - '@swc/css'
+      - '@swc/helpers'
+      - '@swc/html'
+      - clean-css
+      - cssnano
+      - csso
+      - esbuild
+      - html-minifier-terser
+      - imagemin
+      - lightningcss
+      - postcss
+      - sharp
+      - svgo
+      - uglify-js
+      - webpack-cli
+
   '@temporalio/worker@1.23.0(lightningcss@1.33.0)(postcss@8.5.28)':
     dependencies:
       '@grpc/grpc-js': 1.14.4
@@ -3158,6 +3267,19 @@ snapshots:
 
   mime-db@1.54.0: {}
 
+  minimizer-webpack-plugin@5.10.0(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)(webpack@5.110.3(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)):
+    dependencies:
+      '@jridgewell/trace-mapping': 0.3.31
+      jest-worker: 27.5.1
+      schema-utils: 4.3.3
+      terser: 5.51.2
+      webpack: 5.110.3(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)
+    optionalDependencies:
+      '@swc/core': 1.16.2
+      esbuild: 0.28.2
+      lightningcss: 1.33.0
+      postcss: 8.5.28
+
   minimizer-webpack-plugin@5.10.0(@swc/core@1.16.2)(lightningcss@1.33.0)(postcss@8.5.28)(webpack@5.110.3(@swc/core@1.16.2)(lightningcss@1.33.0)(postcss@8.5.28)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
@@ -3321,6 +3443,12 @@ snapshots:
 
   source-map-js@1.2.1: {}
 
+  source-map-loader@5.0.0(webpack@5.110.3(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)):
+    dependencies:
+      iconv-lite: 0.6.3
+      source-map-js: 1.2.1
+      webpack: 5.110.3(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)
+
   source-map-loader@5.0.0(webpack@5.110.3(@swc/core@1.16.2)(lightningcss@1.33.0)(postcss@8.5.28)):
     dependencies:
       iconv-lite: 0.6.3
@@ -3357,6 +3485,12 @@ snapshots:
   supports-color@8.1.1:
     dependencies:
       has-flag: 4.0.0
+
+  swc-loader@0.2.7(@swc/core@1.16.2)(webpack@5.110.3(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)):
+    dependencies:
+      '@swc/core': 1.16.2
+      '@swc/counter': 0.1.3
+      webpack: 5.110.3(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)
 
   swc-loader@0.2.7(@swc/core@1.16.2)(webpack@5.110.3(@swc/core@1.16.2)(lightningcss@1.33.0)(postcss@8.5.28)):
     dependencies:
@@ -3465,6 +3599,45 @@ snapshots:
       graceful-fs: 4.2.11
 
   webpack-sources@3.5.1: {}
+
+  webpack@5.110.3(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28):
+    dependencies:
+      '@types/estree': 1.0.9
+      '@types/json-schema': 7.0.15
+      '@webassemblyjs/ast': 1.14.1
+      '@webassemblyjs/wasm-edit': 1.14.1
+      '@webassemblyjs/wasm-parser': 1.14.1
+      acorn: 8.18.0
+      browserslist: 4.28.9
+      chrome-trace-event: 1.0.4
+      enhanced-resolve: 5.24.5
+      es-module-lexer: 2.3.2
+      events: 3.3.0
+      graceful-fs: 4.2.11
+      mime-db: 1.54.0
+      minimizer-webpack-plugin: 5.10.0(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28)(webpack@5.110.3(@swc/core@1.16.2)(esbuild@0.28.2)(lightningcss@1.33.0)(postcss@8.5.28))
+      neo-async: 2.6.2
+      schema-utils: 4.3.3
+      tapable: 2.3.3
+      watchpack: 2.5.2
+      webpack-sources: 3.5.1
+    transitivePeerDependencies:
+      - '@minify-html/node'
+      - '@napi-rs/image'
+      - '@swc/core'
+      - '@swc/css'
+      - '@swc/html'
+      - clean-css
+      - cssnano
+      - csso
+      - esbuild
+      - html-minifier-terser
+      - imagemin
+      - lightningcss
+      - postcss
+      - sharp
+      - svgo
+      - uglify-js
 
   webpack@5.110.3(@swc/core@1.16.2)(lightningcss@1.33.0)(postcss@8.5.28):
     dependencies:

@@ -11,12 +11,20 @@
     }
   },
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@poc/agent-contracts": "workspace:*",
     "@temporalio/workflow": "1.23.0"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "@temporalio/activity": "1.23.0",
+    "@temporalio/client": "1.23.0",
+    "@temporalio/common": "1.23.0",
+    "@temporalio/testing": "1.23.0",
+    "@temporalio/worker": "1.23.0",
+    "typescript": "5.9.3",
+    "vitest": "5.0.0"
   }
 }

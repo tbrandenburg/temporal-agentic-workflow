@@ -34,7 +34,7 @@ worker: ## run agent-default worker (host)
 	pnpm --filter @poc/worker exec node dist/main.js
 
 worker-val: ## run tool-validation worker (host)
-	@echo "not yet implemented: Phase 3 adds packages/worker/src/validation-worker.ts"
+	pnpm --filter @poc/worker exec node dist/validation-worker.js
 
 api: ## run Run API on :3300
 	pnpm --filter @poc/run-api exec node dist/server.js
