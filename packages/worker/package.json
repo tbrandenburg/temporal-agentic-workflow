@@ -19,6 +19,7 @@
   "dependencies": {
     "@poc/agent-contracts": "workspace:*",
     "@poc/agent-runtime": "workspace:*",
+    "@poc/agent-tools": "workspace:*",
     "@poc/artifact-store": "workspace:*",
     "@poc/workflows": "workspace:*",
     "@temporalio/activity": "1.23.0",

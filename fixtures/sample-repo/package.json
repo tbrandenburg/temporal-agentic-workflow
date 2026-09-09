@@ -1,0 +1,11 @@
+{
+  "name": "sample-repo",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Phase 4 fixture repository — a tiny, dependency-free project that the coder role's patch is applied against and validated inside an ephemeral git workspace. Not part of the pnpm workspace.",
+  "scripts": {
+    "format": "node --check src/greet.js && node --check src/greet.test.js",
+    "lint": "node -e \"process.exit(0)\"",
+    "test": "node --test src/greet.test.js"
+  }
+}
