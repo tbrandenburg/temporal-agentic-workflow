@@ -165,6 +165,8 @@ POST /runs/:runId/cancel
 
 POST /runs starts agentRunWorkflow with workflowId = agent-run/<run_id>. GET queries workflow status and returns the final artifact manifest. Cancellation should request Temporal workflow cancellation and allow the worker to stop any active opencode subprocess cleanly.
 
+The Run API listens on port 3300 by default (configurable via PORT), avoiding collision with other local services commonly bound to 3000.
+
 Implementation phases
 
 1. Local Temporal baseline
