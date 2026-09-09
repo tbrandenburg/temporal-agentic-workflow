@@ -248,7 +248,10 @@ make worker-val # run tool-validation worker (host)
 make api        # run Run API on :3300
 make run        # up + api + workers (dev convenience)
 make stop       # stop host processes + compose down
-make test       # vitest unit + integration
+make test       # vitest unit + integration (fast; excludes gates)
+make e2e        # all non-mocked gates G1..G5 against the live stack
+make e2e GATE=n # a single gate
+make e2e-ui     # Playwright UI gate (GU) against Temporal UI on :8233
 make lint       # biome check --write
 make build      # tsc -b
 make schemas    # regenerate schemas/ from Zod
@@ -392,6 +395,35 @@ No auth (single trusted local caller — restated as a non-goal). Pino logging w
 
 Each phase lists deliverables and the **evidence** required to call it done. No phase is complete on the basis of "it looks right"; each needs captured command output.
 
+### 9.0 E2E gate policy
+
+Every milestone phase ends with a **non-mocked E2E gate**. A gate is not a unit or integration test — it runs the real stack end to end with **zero mocks, zero stubs, zero fakes**:
+
+- real Temporal server (compose, not `TestWorkflowEnvironment`, not time-skipping),
+- real PostgreSQL persistence,
+- real MinIO artifact store,
+- real host workers as separate OS processes,
+- real Run API over HTTP on :3300,
+- real `opencode run` subprocesses from **Phase 4 onward** (Phases 1–3 gates may use `AGENT_MODE=mock` **only** because the roles do not exist yet; this is stated per gate and expires at Phase 4).
+
+Rules that make the gates meaningful rather than decorative:
+
+- **A gate that has never failed is not trusted.** Each gate must be demonstrated red before green — break the thing it checks, capture the failure, restore, capture the pass. Both transcripts are committed.
+- **No gate asserts on its own fixtures.** Assertions read the real Temporal history, the real MinIO object listing, and the real HTTP response — never an in-process value the test itself produced.
+- **Gates are the only tests permitted to be slow.** Budget: ≤ 10 min per gate in mock mode, ≤ 30 min with real models.
+- **A failing gate blocks the next phase.** No proceeding on a partially-green gate.
+- Gate specs live in `e2e/gate-<n>-*.e2e.ts`, run via `make e2e` (all) or `make e2e GATE=n` (one). They are excluded from `make test` so the fast suite stays fast.
+
+| Gate | After phase | Agent mode | Proves |
+|---|---|---|---|
+| **G1** | 1 — baseline | mock | Stack boots, workflow starts from HTTP, visible in UI |
+| **G2** | 3 — durable workflow | mock | Full planner→coder→reviewer chain durable across a real worker kill |
+| **G3** | 4 — validation | **real model** | Real agent output survives the deterministic gate; adversarial patches rejected |
+| **G4** | 5 — visibility | **real model** | Status/query/cancel work against a live run; subprocess actually dies |
+| **G5** | 6 — final | **real model** | All 7 definition-of-done criteria, all 5 failure scenarios |
+
+Additionally, a **Playwright UI gate (`GU`)** runs at Phases 1, 3 and 6 — specified in §9.8.
+
 ### Phase 0 — Repo scaffolding *(new; INITIAL implicitly assumes it)*
 
 - pnpm workspace, `tsconfig.base.json` with project references, Biome config, Vitest workspace, Makefile, CI workflow.
@@ -409,6 +441,15 @@ Each phase lists deliverables and the **evidence** required to call it done. No 
 - `docker compose ps` showing all 5 services healthy.
 - `temporal operator search-attribute list` showing all 5 custom attributes.
 - `curl -X POST localhost:3300/runs` returning a run id, and the corresponding execution visible in the UI at `localhost:8233`.
+
+**Gate G1 (non-mocked, `AGENT_MODE=mock` permitted — no agent roles exist yet):**
+`e2e/gate-1-baseline.e2e.ts` drives the real stack:
+1. Assert `/health` on the API and gRPC reachability on 7233.
+2. `POST /runs` over real HTTP → capture `run_id`.
+3. Poll the **Temporal client** (not the API) until `pingWorkflow` closes — asserting against server state, not our own response.
+4. Assert the execution's typed search attributes contain the submitted `RunId`, `Repository`, `TaskClass`.
+5. Assert the artifact bucket exists in MinIO.
+Red-first proof: stop the worker container/process, re-run, capture the timeout failure; restart, capture the pass.
 
 ### Phase 2 — Contracts and agent runner
 
@@ -433,6 +474,8 @@ Each phase lists deliverables and the **evidence** required to call it done. No 
 - Time-skipping tests for retry and timeout paths.
 - `Worker.runReplayHistory()` passing against the recorded history.
 
+**Gate G2 (non-mocked stack, `AGENT_MODE=mock` for roles):** `e2e/gate-2-durable.e2e.ts` — start a run via HTTP, wait until history shows the coder activity started, `SIGKILL` the worker process, restart it, assert the workflow still completes and history shows continuation (no re-execution of the planner). Assert history payload sizes are all under the artifact threshold. Red-first: temporarily persist a large payload, prove the size assertion fails.
+
 ### Phase 4 — Patch validation
 
 - `agent-tools` workspace/patch/allowlist/checks/secret-scan.
@@ -443,6 +486,8 @@ Each phase lists deliverables and the **evidence** required to call it done. No 
 - Passing run: valid patch → format/lint/test green → `ValidationResult.status = "passed"`.
 - **Adversarial runs, all required:** patch escaping the allowlist (`../../etc/passwd`), corrupt diff, patch that breaks tests, artifact containing a planted fake secret. Each must fail with the correct typed error and must not mutate anything outside the ephemeral workspace.
 - Proof the workspace is removed after both success and failure.
+
+**Gate G3 (fully non-mocked — real `opencode run` from here on):** `e2e/gate-3-validation.e2e.ts` — a real model produces a real patch against the fixture repo; assert `ValidationResult.status="passed"`, artifacts present in MinIO, fixture repo `git status --porcelain` empty. Then the four adversarial cases, each asserting the correct typed error and an untouched fixture repo.
 
 ### Phase 5 — Visibility and controls
 
@@ -456,6 +501,8 @@ Each phase lists deliverables and the **evidence** required to call it done. No 
 - A cancellation mid-`runAgent` where the opencode PID is confirmed gone (`ps` before/after) and the workflow ends `CANCELLED`.
 - Log capture showing redaction actually applied.
 
+**Gate G4 (fully non-mocked):** `e2e/gate-4-controls.e2e.ts` — start a real-model run; while `runAgent` is live, record the opencode PID from the process table; call `POST /runs/:id/cancel`; assert the PID is gone within the SIGTERM grace window, the workflow closes `CANCELLED`, and partial log artifacts were still flushed to MinIO. Also assert `GET /runs/:id` reports each phase transition and that `temporal workflow list --query 'RunStatus=...'` finds the run.
+
 ### Phase 6 — Failure demonstration
 
 The five scenarios INITIAL names, each with captured evidence:
@@ -467,6 +514,57 @@ The five scenarios INITIAL names, each with captured evidence:
 5. **Failed tests** — show `ValidationResult.status = "failed"`, reviewer still ran, run outcome `failed`.
 
 **Evidence:** a written run log per scenario with exact commands, plus exported workflow histories committed under `docs/evidence/`.
+
+**Gate G5 (final, fully non-mocked):** `e2e/gate-5-final.e2e.ts` — the complete acceptance suite. Executes all five failure scenarios above plus one clean happy-path run, and asserts every one of the seven definition-of-done criteria in §12 programmatically. This gate *is* the definition of done; it must pass in a single uninterrupted invocation on a freshly booted stack (`make down && make up && make e2e GATE=5`).
+
+### 9.8 Playwright UI gate (GU) — Temporal Web UI verification
+
+**Purpose.** The other gates assert against the gRPC API and HTTP responses. That proves the *server* is correct but says nothing about whether a human can actually observe and diagnose a run — which is the reason INITIAL chose Temporal visibility over a bespoke execution database. GU is the only check that the operator-facing surface really works. It is a **manual, agent-driven Playwright session**, not a CI test.
+
+**Why manual and not automated.** Automating assertions against Temporal's UI DOM couples the PoC to a third-party frontend's markup, which will break on every UI upgrade and teach us nothing about our own system. The value here is *observability confirmation*, which is a judgement call best made by looking. So GU is a scripted, repeatable **checklist executed via MCP Playwright**, producing committed screenshots as evidence — not a set of brittle DOM assertions.
+
+**Tooling.** MCP Playwright browser tools (`browser_navigate`, `browser_snapshot`, `browser_find`, `browser_click`, `browser_take_screenshot`). Accessibility snapshots are preferred over pixel screenshots for locating elements; screenshots are captured only as evidence artifacts.
+
+**Preconditions.** Stack up via `make up`; at least one **completed** run, one **failed** run, and one **cancelled** run present (produced by the preceding gate in the same session, so the UI is showing real data from real executions).
+
+**Screenshot output.** Repo-relative `.playwright-mcp/` during the session, then moved to `docs/evidence/ui/phase-<n>/` and committed. Relative paths are required for inline rendering in the session transcript.
+
+#### GU checklist
+
+Executed in order; each step names the observation that must hold and the artifact captured.
+
+| # | Action | Must observe | Artifact |
+|---|---|---|---|
+| 1 | Navigate `http://localhost:8233` | UI loads, default namespace selected, no error banner | `01-landing.png` |
+| 2 | Open the workflows list | The three seeded runs listed with Workflow IDs of the form `agent-run/<ULID>` | `02-list.png` |
+| 3 | Filter with the search-attribute query `RunStatus="succeeded"` | Only the completed run returns — proves custom search attributes are registered *and* populated, the Phase 1/5 claim, verified through the operator surface | `03-filter-runstatus.png` |
+| 4 | Filter `TaskClass="feature"` | Returns the seeded feature run — proves more than one attribute is genuinely indexed, not just `RunStatus` | `04-filter-taskclass.png` |
+| 5 | Open the completed run's detail page | Status `Completed`; all five typed search attributes shown with correct values; start/close times present | `05-detail-summary.png` |
+| 6 | Open the Event History (compact view) | Ordered activity sequence visible: `initializeRun` → `runAgent`×3 → `validatePatch` → `publishRunSummary`, with the two distinct task queues (`agent-default`, `tool-validation`) attributed correctly | `06-history-compact.png` |
+| 7 | Expand `ActivityTaskCompleted` for the coder | Payload contains **only** summary + `artifact://` refs — **no diff text, no logs, no conversation**. This is the visual confirmation of INITIAL's state rule, checked where a leak would actually be discovered | `07-payload-compact.png` |
+| 8 | Open the failed run; inspect its failure event | Typed error name visible (e.g. `PatchApplyFailed`) with a readable message; attempt count matches the retry policy (1 for non-retryable) | `08-failure.png` |
+| 9 | Open the cancelled run | Status `Cancelled`; history shows `ActivityTaskCancelRequested` **and** the activity's own cancellation completion — proving graceful cancellation propagated rather than the workflow simply abandoning the activity | `09-cancelled.png` |
+| 10 | Open the Workers / task queue view | Pollers present on `agent-default` and `tool-validation`; **`external-action` has zero pollers** — the structural block from §6.1 confirmed visually | `10-workers.png` |
+| 11 | `browser_console_messages` (level `error`) | No console errors that indicate a broken UI/server interaction | pasted into the log |
+
+#### Failure conditions
+
+GU **fails** — and blocks the phase — if any of the following, each of which maps to a real defect rather than cosmetics:
+
+- Search-attribute filters (steps 3–4) return nothing → attributes registered but never upserted, i.e. §4.2 is broken.
+- Step 7 shows any large payload → the artifact-offloading rule is violated and workflow history will eventually blow up.
+- Step 9 lacks activity-level cancellation events → the subprocess-kill path is not actually wired, contradicting G4.
+- Step 10 shows pollers on `external-action` → the PoC's hard boundary against external actions has been breached.
+
+#### Schedule
+
+| Phase | Steps run | Rationale |
+|---|---|---|
+| 1 | 1, 2, 10 | Confirm the UI is reachable and workers register on the right queues before building on it |
+| 3 | 1–7, 10 | First point at which a full activity chain and real payloads exist to inspect |
+| 6 | 1–11 (full) | Final acceptance; all three run outcomes exist |
+
+The Phase 6 execution of GU is a **required artifact of the definition of done** (§12, criterion 6): the committed screenshot set is the evidence that run status and artifacts are genuinely observable, not merely returned by an endpoint we also wrote.
 
 ### Phase 7 — Deferred spikes *(explicitly outside the definition of done)*
 
@@ -483,9 +581,12 @@ Per the 50/30/20 pyramid:
 
 - **Unit (~50%)** — contract validation, result normalisation, allowlist matching, patch parsing, secret scanning, artifact URI handling, prompt composition. Pure functions, no mocks needed.
 - **Integration (~30%)** — activities against real MinIO and a real ephemeral git workspace; `agent-runtime` against a **stub opencode binary** (a real script on `PATH` that emits controlled JSON/exit codes — a fake binary, not a mocked module, so the actual spawn/parse path is exercised); workflows under `TestWorkflowEnvironment`.
-- **E2E (~20%)** — full stack, no mocks: real Temporal, real MinIO, real workers, real `opencode run`. These are the Phase 6 scenarios. Slow, expensive, and deliberately adversarial.
+- **E2E (~20%)** — full stack, **no mocks**: real Temporal, real PostgreSQL, real MinIO, real host workers, real HTTP, and from Phase 4 onward real `opencode run`. These are gates **G1–G5** (§9.0), one per milestone rather than a single suite at the end, so a broken foundation is caught at the phase that introduced it instead of during final acceptance. Slow, expensive, deliberately adversarial.
+- **Manual UI verification** — gate **GU** (§9.8), an agent-driven MCP Playwright checklist against the Temporal Web UI at Phases 1, 3, and 6, producing committed screenshot evidence. Not automated, not in CI, and deliberately not asserting on Temporal's DOM.
 
 Determinism regression via replay tests is treated as a required gate, not an optional extra: any workflow code change must replay recorded histories cleanly.
+
+**CI split.** `make test` (unit + integration, mock/stub only) runs on every push and must stay under ~2 minutes. `make e2e` runs on demand and at phase boundaries; it is never a pull-request blocker because it needs the full stack and real model spend. `make e2e-ui` is manual only.
 
 ---
 
@@ -500,7 +601,10 @@ Determinism regression via replay tests is treated as a required gate, not an op
 | Memory pressure (7.3 GiB host) | Swap thrash, flaky E2E | Activity concurrency 1; monitor during Phase 6. |
 | Non-deterministic workflow edits | Silent corruption of in-flight runs | Replay tests as a required gate. |
 | `--auto` permission bypass | Agent acts outside sandbox | `--auto` used only with `--dir <ephemeral workspace>`; allowlist checked before patch application; no worker on `external-action`. |
-| Real-model cost during E2E | Budget overrun | Mock mode everywhere except Phase 6; per-run invocation cap. |
+| Real-model cost during E2E | Budget overrun | Mock mode for unit/integration and gates G1–G2; real models only in G3–G5; per-run invocation cap. |
+| Gates pass without ever being sensitive | False confidence | §9.0 red-first rule: every gate committed with a failure transcript. |
+| Temporal UI markup drift breaks GU | Wasted debugging | GU is a manual checklist driven by accessibility snapshots, not DOM assertions; UI image pinned to 2.53.3. |
+| Encrypting payload codec hides payloads from GU step 7 | Loss of the strongest history-bloat check | GU runs under the identity codec; limitation documented in §9.8, codec server deferred to Phase 7. |
 
 ---
 
@@ -510,12 +614,12 @@ INITIAL's criteria, restated as binary checks with named evidence:
 
 | # | Criterion | Evidence |
 |---|---|---|
-| 1 | All agent turns run through Node workers and `opencode run` | Phase 6 real-model run log |
-| 2 | Survives a worker restart without losing progress | Phase 6 scenario 1 history export |
-| 3 | Compact upstream state passed between roles | Phase 3 history inspection |
-| 4 | Full outputs stored as artifacts | MinIO listing for a completed run |
-| 5 | Deterministic validation before review | Phase 4 adversarial suite |
-| 6 | Status, cancellation, artifacts exposed via Run API | Phase 5 curl transcripts |
-| 7 | No target-repository mutation or external action | `git status` clean on fixture repo post-run; no worker registered on `external-action` |
+| 1 | All agent turns run through Node workers and `opencode run` | Gate G5 + Phase 6 real-model run log |
+| 2 | Survives a worker restart without losing progress | Gate G2 + G5 scenario 1 history export |
+| 3 | Compact upstream state passed between roles | Gate G2 payload-size assertion + GU step 7 screenshot |
+| 4 | Full outputs stored as artifacts | Gate G3 MinIO listing for a completed run |
+| 5 | Deterministic validation before review | Gate G3 adversarial suite |
+| 6 | Status, cancellation, artifacts exposed via Run API | Gate G4 + GU steps 3–9 screenshot set |
+| 7 | No target-repository mutation or external action | Gate G3 `git status --porcelain` empty; GU step 10 showing zero pollers on `external-action` |
 
-The PoC is complete only when all seven have captured, reproducible evidence committed under `docs/evidence/`. Partial completion is not completion.
+The PoC is complete only when all seven have captured, reproducible evidence committed under `docs/evidence/`, **and** gates G1–G5 pass on a freshly booted stack, **and** the full GU checklist has been executed at Phase 6 with screenshots committed under `docs/evidence/ui/phase-6/`. Partial completion is not completion.
