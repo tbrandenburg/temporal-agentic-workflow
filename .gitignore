@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+dist/
+build/
+.turbo/
+coverage/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Temporal / infra local state
+infra/temporal/data/
+*.pid
+
+# Artifacts produced by runs (local dev)
+artifacts/
+tmp/
