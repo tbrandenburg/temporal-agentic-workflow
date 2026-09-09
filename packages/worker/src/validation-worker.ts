@@ -4,6 +4,7 @@
 // toolchains) without touching the agent worker.
 import { Worker } from '@temporalio/worker';
 import { validatePatch } from './activities';
+import { buildPayloadCodecs } from './codec';
 
 const TASK_QUEUE = 'tool-validation';
 
@@ -12,6 +13,7 @@ async function run(): Promise<void> {
     // Activities-only worker — this queue never executes workflow code.
     taskQueue: TASK_QUEUE,
     activities: { validatePatch },
+    dataConverter: { payloadCodecs: buildPayloadCodecs() },
   });
 
   console.log(`worker started on task queue "${TASK_QUEUE}"`);

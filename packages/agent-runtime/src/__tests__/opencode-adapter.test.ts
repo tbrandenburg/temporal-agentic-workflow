@@ -1,6 +1,11 @@
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { runOpencode, SubprocessFailedError, SubprocessTimeoutError } from '../opencode-adapter';
+import {
+  runOpencode,
+  SubprocessCancelledError,
+  SubprocessFailedError,
+  SubprocessTimeoutError,
+} from '../opencode-adapter';
 
 const FIXTURES = join(__dirname, 'fixtures');
 const realEnv = { AGENT_MODE: 'real' };
@@ -75,5 +80,19 @@ describe('runOpencode (real mode, stub binary — exercises the real spawn/parse
         timeoutMs: 200,
       }),
     ).rejects.toThrow(SubprocessTimeoutError);
+  }, 10_000);
+
+  it('throws SubprocessCancelledError and kills the subprocess when the signal aborts (PLAN §6.3)', async () => {
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(), 200);
+
+    await expect(
+      runOpencode('prompt', {
+        binary: join(FIXTURES, 'stub-hang.js'),
+        dir: '/tmp',
+        env: realEnv,
+        signal: controller.signal,
+      }),
+    ).rejects.toThrow(SubprocessCancelledError);
   }, 10_000);
 });

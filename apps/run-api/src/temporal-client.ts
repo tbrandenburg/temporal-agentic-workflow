@@ -1,5 +1,7 @@
 // Singleton Temporal Client. Connection is established lazily on first use
 // and closed explicitly on server shutdown.
+
+import { buildPayloadCodecs } from '@poc/worker';
 import { Client, Connection } from '@temporalio/client';
 import type { Config } from './config';
 
@@ -10,7 +12,11 @@ export async function getTemporalClient(config: Config): Promise<Client> {
   if (client) return client;
 
   connection = await Connection.connect({ address: config.temporalAddress });
-  client = new Client({ connection, namespace: config.temporalNamespace });
+  client = new Client({
+    connection,
+    namespace: config.temporalNamespace,
+    dataConverter: { payloadCodecs: buildPayloadCodecs() },
+  });
   return client;
 }
 

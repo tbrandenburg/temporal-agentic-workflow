@@ -3,6 +3,7 @@
 // separate `tool-validation` worker (`validation-worker.ts`).
 import { Worker } from '@temporalio/worker';
 import { initializeRun, publishRunSummary, runAgent } from './activities';
+import { buildPayloadCodecs } from './codec';
 
 const TASK_QUEUE = 'agent-default';
 
@@ -13,6 +14,7 @@ async function run(): Promise<void> {
     activities: { initializeRun, runAgent, publishRunSummary },
     // One opencode subprocess at a time — PLAN §6.2 memory ceiling.
     maxConcurrentActivityTaskExecutions: 1,
+    dataConverter: { payloadCodecs: buildPayloadCodecs() },
   });
 
   console.log(`worker started on task queue "${TASK_QUEUE}"`);

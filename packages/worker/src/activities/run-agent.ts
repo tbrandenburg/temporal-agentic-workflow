@@ -2,10 +2,15 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { AgentInput, AgentResult } from '@poc/agent-contracts';
-import { composePrompt, normalizeAgentResult, runOpencode } from '@poc/agent-runtime';
+import {
+  composePrompt,
+  normalizeAgentResult,
+  runOpencode,
+  SubprocessCancelledError,
+} from '@poc/agent-runtime';
 import { createWorkspace } from '@poc/agent-tools';
 import { ArtifactStore, loadArtifactStoreConfigFromEnv } from '@poc/artifact-store';
-import { heartbeat } from '@temporalio/activity';
+import { cancellationSignal, cancelled, heartbeat } from '@temporalio/activity';
 import { execa } from 'execa';
 
 /** Duck-typed subset of `ArtifactStore` — matches `validate-patch.ts`'s `ArtifactSink`. */
@@ -17,6 +22,9 @@ export interface RunAgentDeps {
   artifactStore?: ArtifactSink;
   /** Fixture repository the coder role edits. Defaults to `fixtures/sample-repo`. */
   fixtureRepoPath?: string;
+  /** Overrides the `opencode` binary — tests only, exercises the real
+   * spawn/cancel path against a stub binary instead of the real CLI. */
+  opencodeBinary?: string;
 }
 
 const DEFAULT_FIXTURE_REPO_PATH = join(
@@ -95,6 +103,8 @@ export async function runAgent(input: AgentInput, deps: RunAgentDeps = {}): Prom
   try {
     const raw = await runOpencode(prompt, {
       dir: workspace,
+      signal: cancellationSignal(),
+      ...(deps.opencodeBinary ? { binary: deps.opencodeBinary } : {}),
       ...(context.requested_model ? { model: context.requested_model } : {}),
     });
 
@@ -113,6 +123,26 @@ export async function runAgent(input: AgentInput, deps: RunAgentDeps = {}): Prom
     }
 
     return normalizeAgentResult(raw, { runId: context.run_id, role, artifactRefs });
+  } catch (error) {
+    // PLAN §1.2 point 3 / §6.3: on cancellation, `runOpencode` has already
+    // SIGTERM'd the subprocess (execa's `cancelSignal`, 5 s grace, then
+    // SIGKILL — the default `forceKillAfterDelay` behaviour). What's left
+    // is flushing whatever partial stdout/stderr the process produced
+    // before it died, then re-throwing as the SDK's own `CancelledFailure`
+    // (via `cancelled()`) so the workflow observes a real cancellation
+    // rather than a generic activity failure.
+    if (error instanceof SubprocessCancelledError) {
+      const store = deps.artifactStore ?? new ArtifactStore(loadArtifactStoreConfigFromEnv());
+      const partialLog = [
+        '--- partial stdout (subprocess cancelled) ---',
+        error.stdout,
+        '--- partial stderr (subprocess cancelled) ---',
+        error.stderr,
+      ].join('\n');
+      await store.put(context.run_id, role, 'cancelled.log', partialLog);
+      await cancelled();
+    }
+    throw error;
   } finally {
     clearInterval(heartbeatTimer);
     if (seededWorkspace) {

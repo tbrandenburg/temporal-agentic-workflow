@@ -6,7 +6,7 @@ import type {
   TaskRequest,
   ValidationResult,
 } from '@poc/agent-contracts';
-import { proxyActivities } from '@temporalio/workflow';
+import { ActivityCancellationType, proxyActivities } from '@temporalio/workflow';
 
 /**
  * `validatePatch` input — PLAN §5.1 (`validationActivities.validatePatch({ context, coderResult })`).
@@ -65,6 +65,10 @@ const { runAgent } = proxyActivities<AgentDefaultActivities>({
   taskQueue: 'agent-default',
   startToCloseTimeout: '20 minutes',
   heartbeatTimeout: '30 seconds',
+  // PLAN §1.2 point 3: wait for `runAgent`'s cleanup (SIGTERM/SIGKILL the
+  // opencode subprocess, flush partial logs) to actually finish before the
+  // workflow observes the cancellation, rather than racing ahead.
+  cancellationType: ActivityCancellationType.WAIT_CANCELLATION_COMPLETED,
   retry: {
     initialInterval: '5 seconds',
     backoffCoefficient: 2,

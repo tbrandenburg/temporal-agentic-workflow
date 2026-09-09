@@ -50,6 +50,24 @@ export class SubprocessTimeoutError extends Error {
   }
 }
 
+/**
+ * Thrown when the subprocess was killed because its `AbortSignal`
+ * (`Context.current().cancellationSignal`, wired via `options.signal`) was
+ * aborted — i.e. workflow/activity cancellation, per PLAN §6.3 /
+ * §1.2 point 3. Carries whatever stdout/stderr the process had produced
+ * before it was killed, so the caller can flush partial logs before
+ * rethrowing.
+ */
+export class SubprocessCancelledError extends Error {
+  constructor(
+    public readonly stdout: string,
+    public readonly stderr: string,
+  ) {
+    super('opencode run was cancelled');
+    this.name = 'SubprocessCancelledError';
+  }
+}
+
 export interface OpencodeAdapterOptions {
   /** Overridable for tests: point at a stub binary on PATH instead of the real `opencode`. */
   binary?: string;
@@ -147,6 +165,10 @@ export async function runOpencode(
     const endedAt = new Date().toISOString();
     const durationMs = Date.now() - start;
 
+    if (result.isCanceled) {
+      throw new SubprocessCancelledError(String(result.stdout ?? ''), String(result.stderr ?? ''));
+    }
+
     if (result.timedOut) {
       throw new SubprocessTimeoutError(options.timeoutMs ?? 0);
     }
@@ -169,7 +191,11 @@ export async function runOpencode(
       timedOut: false,
     };
   } catch (error) {
-    if (error instanceof SubprocessFailedError || error instanceof SubprocessTimeoutError) {
+    if (
+      error instanceof SubprocessFailedError ||
+      error instanceof SubprocessTimeoutError ||
+      error instanceof SubprocessCancelledError
+    ) {
       throw error;
     }
     // execa itself throws (with reject:false this is rare, but a spawn
