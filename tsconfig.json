@@ -1,0 +1,12 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/agent-contracts" },
+    { "path": "packages/workflows" },
+    { "path": "packages/worker" },
+    { "path": "packages/agent-runtime" },
+    { "path": "packages/agent-tools" },
+    { "path": "packages/artifact-store" },
+    { "path": "apps/run-api" }
+  ]
+}

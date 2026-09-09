@@ -1,0 +1,13 @@
+{
+  "name": "@poc/run-api",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/server.js",
+  "types": "dist/server.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}
