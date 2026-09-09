@@ -13,7 +13,7 @@ test: ## vitest unit + integration (fast; excludes gates)
 	pnpm exec vitest run
 
 schemas: ## regenerate schemas/ from Zod
-	@echo "not yet implemented: Phase 2 adds packages/agent-contracts/scripts/emit-json-schema.ts"
+	pnpm --filter @poc/agent-contracts run emit-json-schema
 
 up: ## docker compose up -d + wait-healthy + register search attributes
 	docker compose -f infra/temporal/docker-compose.yaml up -d
@@ -56,3 +56,4 @@ e2e-ui: ## Playwright UI gate (GU) against Temporal UI on :8233
 clean: ## rm dist, .turbo, tmp artifacts
 	rm -rf dist .turbo tmp
 	find apps packages -maxdepth 2 -name dist -type d -exec rm -rf {} +
+	find . -maxdepth 3 -name "*.tsbuildinfo" -not -path "./node_modules/*" -delete

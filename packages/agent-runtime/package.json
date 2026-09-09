@@ -10,10 +10,20 @@
       "default": "./dist/index.js"
     }
   },
+  "bin": {
+    "agent-runtime": "dist/cli.js"
+  },
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",
+    "test": "vitest run"
   },
   "devDependencies": {
-    "typescript": "5.9.3"
+    "tsx": "^4.23.13",
+    "typescript": "5.9.3",
+    "vitest": "5.0.0"
+  },
+  "dependencies": {
+    "@poc/agent-contracts": "workspace:*",
+    "execa": "10.0.1"
   }
 }
