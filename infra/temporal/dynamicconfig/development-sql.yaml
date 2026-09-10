@@ -4,3 +4,11 @@
 system.forceSearchAttributesCacheRefreshOnRead:
   - value: true
     constraints: {}
+
+# Enables the Workers page's live worker-fleet view (Web UI "Workers" ->
+# "Instances"/"Deployments" tabs). Without this, the UI shows "Worker
+# Heartbeats Disabled" instead of the actually-running agent-default /
+# tool-validation workers -- found via a full Web UI menu walkthrough.
+frontend.workerHeartbeatsEnabled:
+  - value: true
+    constraints: {}

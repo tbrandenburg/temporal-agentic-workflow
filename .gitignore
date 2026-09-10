@@ -35,3 +35,8 @@ infra/temporal/data/
 # Artifacts produced by runs (local dev)
 artifacts/
 tmp/
+
+# Playwright MCP session output (screenshots/snapshots) — never committed as-is;
+# curated evidence lives under docs/evidence/ instead.
+.playwright-mcp/
+**/.playwright-mcp/
