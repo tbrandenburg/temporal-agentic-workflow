@@ -1,0 +1,35 @@
+{
+  "name": "@poc/worker",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/main.js",
+    "start:validation": "node dist/validation-worker.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@poc/agent-contracts": "workspace:*",
+    "@poc/agent-runtime": "workspace:*",
+    "@poc/agent-tools": "workspace:*",
+    "@poc/artifact-store": "workspace:*",
+    "@poc/workflows": "workspace:*",
+    "@temporalio/activity": "1.23.0",
+    "@temporalio/common": "1.23.0",
+    "@temporalio/worker": "1.23.0",
+    "execa": "10.0.1"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "5.0.0",
+    "@temporalio/testing": "1.23.0"
+  }
+}

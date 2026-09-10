@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"],
+  "exclude": ["src/__tests__", "src/codec/__tests__"],
+  "references": [
+    { "path": "../workflows" },
+    { "path": "../agent-contracts" },
+    { "path": "../agent-runtime" },
+    { "path": "../agent-tools" },
+    { "path": "../artifact-store" }
+  ]
+}

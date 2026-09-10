@@ -4,11 +4,13 @@ dist/
 build/
 .turbo/
 coverage/
+*.tsbuildinfo
 
 # Env
 .env
 .env.*
 !.env.example
+!infra/temporal/.env
 
 # Logs
 *.log
