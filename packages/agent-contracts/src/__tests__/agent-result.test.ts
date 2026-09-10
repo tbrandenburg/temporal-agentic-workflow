@@ -52,8 +52,13 @@ describe('agentResultSchema', () => {
     expect(agentResultSchema.safeParse(badUri).success).toBe(false);
   });
 
-  it('rejects an unknown agent role', () => {
-    const badRole = { ...validSample, agent: 'orchestrator' };
+  it('accepts any non-empty step identifier as agent (generic, not restricted to planner/coder/reviewer)', () => {
+    const customRole = { ...validSample, agent: 'summarizer' };
+    expect(agentResultSchema.safeParse(customRole).success).toBe(true);
+  });
+
+  it('rejects an empty agent role', () => {
+    const badRole = { ...validSample, agent: '' };
     expect(agentResultSchema.safeParse(badRole).success).toBe(false);
   });
 

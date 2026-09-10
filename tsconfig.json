@@ -1,6 +1,7 @@
 {
   "files": [],
   "references": [
+    { "path": "pipelines" },
     { "path": "packages/agent-contracts" },
     { "path": "packages/workflows" },
     { "path": "packages/worker" },

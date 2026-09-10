@@ -1,11 +1,32 @@
-import type { AgentResult, RunContext, TaskRequest, ValidationResult } from '@poc/agent-contracts';
+import type {
+  AgentResult,
+  PipelineDefinition,
+  RunContext,
+  TaskRequest,
+  ValidationResult,
+} from '@poc/agent-contracts';
 import { TestWorkflowEnvironment } from '@temporalio/testing';
 import { Worker } from '@temporalio/worker';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { registry } from '../../../../pipelines/registry';
 import type { Config } from '../config';
+import { registerPipelineRoutes } from '../routes/pipelines';
 import { registerRunRoutes } from '../routes/runs';
 import { closeTemporalClient } from '../temporal-client';
+
+describe('GET /pipelines', () => {
+  it('returns every pipeline registered in pipelines/registry.ts', async () => {
+    const app = Fastify();
+    registerPipelineRoutes(app);
+    const res = await app.inject({ method: 'GET', url: '/pipelines' });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().pipelines).toEqual(
+      expect.arrayContaining(['coding-review', 'summarizer-critic']),
+    );
+    await app.close();
+  });
+});
 
 /**
  * GET/cancel route integration tests, per PLAN §8 / §9 Phase 5 evidence.
@@ -64,27 +85,27 @@ describe('GET /runs/:runId and POST /runs/:runId/cancel', () => {
       taskQueue: 'agent-default',
       workflowsPath: require.resolve('@poc/workflows'),
       activities: {
-        initializeRun: async (task: TaskRequest): Promise<RunContext> => ({
-          run_id: task.run_id ?? 'test-run',
-          repository: task.repository,
-          task_class: task.task_class,
-          instruction: task.instruction,
+        initializeRun: async (
+          task: TaskRequest,
+        ): Promise<{ context: RunContext; pipeline: PipelineDefinition }> => ({
+          context: {
+            run_id: task.run_id ?? 'test-run',
+            repository: task.repository,
+            task_class: task.task_class,
+            instruction: task.instruction,
+          },
+          pipeline: registry[task.pipeline],
         }),
         runAgent: async ({ role, context }: { role: string; context: RunContext }) =>
           successResult(role, context),
         publishRunSummary: async (input: {
           context: RunContext;
-          plan: AgentResult;
-          code: AgentResult;
-          validation: ValidationResult;
-          review: AgentResult;
+          results: Record<string, AgentResult | ValidationResult>;
+          status: 'succeeded' | 'failed' | 'cancelled';
         }) => ({
           run_id: input.context.run_id,
-          status: input.validation.status === 'failed' ? 'failed' : 'succeeded',
-          plan: input.plan,
-          code: input.code,
-          validation: input.validation,
-          review: input.review,
+          status: input.status,
+          steps: input.results,
           artifact_manifest: [],
         }),
       },
@@ -124,6 +145,7 @@ describe('GET /runs/:runId and POST /runs/:runId/cancel', () => {
       repository: 'local/fixture',
       task_class: 'chore',
       instruction: 'route integration test',
+      pipeline: 'coding-review',
       ...overrides,
     };
   }

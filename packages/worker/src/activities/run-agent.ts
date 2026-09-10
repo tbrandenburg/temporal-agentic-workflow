@@ -5,6 +5,8 @@ import type { AgentInput, AgentResult } from '@poc/agent-contracts';
 import {
   composePrompt,
   normalizeAgentResult,
+  readPromptFile,
+  resolveAgentMode,
   runOpencode,
   SubprocessCancelledError,
 } from '@poc/agent-runtime';
@@ -72,12 +74,13 @@ const HEARTBEAT_INTERVAL_MS = 5_000;
  * retry has `heartbeatDetails` to work with (PLAN §1.2 point 4), and so
  * the server can deliver cancellation to a real, minutes-long subprocess.
  *
- * The coder role is special-cased: its workspace is seeded from the
- * fixture repository (not an empty temp dir) so a real `opencode run` has
- * actual files to edit, and after the subprocess exits, `git diff` against
- * that seeded baseline becomes the `patch` artifact `validatePatch`
- * requires at `AgentResult.artifact_refs.patch`. Other roles keep the
- * original empty-workspace behaviour — they never need to publish a patch.
+ * A step with `producesPatch: true` is special-cased: its workspace is
+ * seeded from the fixture repository (not an empty temp dir) so a real
+ * `opencode run` has actual files to edit, and after the subprocess exits,
+ * `git diff` against that seeded baseline becomes the `patch` artifact
+ * `validatePatch` requires at `AgentResult.artifact_refs.patch`. Other
+ * steps keep the original empty-workspace behaviour — they never need to
+ * publish a patch.
  */
 export async function runAgent(input: AgentInput, deps: RunAgentDeps = {}): Promise<AgentResult> {
   const { role, context } = input;
@@ -86,8 +89,9 @@ export async function runAgent(input: AgentInput, deps: RunAgentDeps = {}): Prom
     throw new ModelNotAllowedError(context.requested_model);
   }
 
-  const prompt = composePrompt(input);
-  const isCoder = role === 'coder';
+  const rolePrompt = readPromptFile(input.promptFile);
+  const prompt = composePrompt(input, rolePrompt);
+  const producesPatch = input.producesPatch === true;
   // Real Temporal attempt number, not a hardcoded `1` — a retry (whether
   // from a transient failure or a worker crashing mid-activity, PLAN §9
   // Phase 6 scenario 1) must get its own fresh workspace directory
@@ -96,7 +100,7 @@ export async function runAgent(input: AgentInput, deps: RunAgentDeps = {}): Prom
   // attempt" (PLAN §5.3) — a bare `attempt: 1` here defeated that
   // guarantee for every retry.
   const attempt = Context.current().info.attempt;
-  const seededWorkspace = isCoder
+  const seededWorkspace = producesPatch
     ? await createWorkspace({
         sourceRepoPath: deps.fixtureRepoPath ?? DEFAULT_FIXTURE_REPO_PATH,
         runId: context.run_id,
@@ -121,18 +125,26 @@ export async function runAgent(input: AgentInput, deps: RunAgentDeps = {}): Prom
     // `evidence-fault-injection.ts` for why each exists.
     maybeThrowTransient(role);
     await maybeDelay(role);
-    if (isCoder) await maybeEditCoderWorkspace(workspace);
+    if (producesPatch) await maybeEditCoderWorkspace(workspace);
+
+    // Dry-run resolution (PLAN Step 3): global `AGENT_MODE=mock` always
+    // dominates. Only when the global mode is `real` and this step's
+    // `dryRun` is `true` do we force this specific invocation to mock, by
+    // overriding the env passed to `runOpencode` — `opencode-adapter.ts`
+    // and `modes.ts` stay untouched.
+    const forceMock = input.dryRun === true && resolveAgentMode(process.env) === 'real';
 
     const raw = await runOpencode(prompt, {
       dir: workspace,
       signal: cancellationSignal(),
       ...(deps.opencodeBinary ? { binary: deps.opencodeBinary } : {}),
       ...(context.requested_model ? { model: context.requested_model } : {}),
+      ...(forceMock ? { env: { ...process.env, AGENT_MODE: 'mock' } } : {}),
     });
     raw.finalText = maybeCorruptSummary(role, raw.finalText);
 
     const artifactRefs: Record<string, string> = {};
-    if (isCoder) {
+    if (producesPatch) {
       const diff = await execa('git', ['diff'], { cwd: workspace, reject: false });
       const rawDiff = String(diff.stdout ?? '');
       // `execa` strips the trailing newline from captured stdout, but

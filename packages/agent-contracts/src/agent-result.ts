@@ -1,7 +1,13 @@
 import { z } from 'zod';
 import { artifactRefSchema } from './artifact-ref';
 
-export const agentRoleSchema = z.enum(['planner', 'coder', 'reviewer']);
+/**
+ * A step identifier / agent label — free-form (not restricted to
+ * planner/coder/reviewer) so any pipeline step can be run generically by
+ * `runAgent`. Kept as `agentRoleSchema`/`AgentRole` for minimal diff since
+ * many files reference these names.
+ */
+export const agentRoleSchema = z.string().min(1);
 export type AgentRole = z.infer<typeof agentRoleSchema>;
 
 const agentResultStatusSchema = z.enum(['success', 'failure']);

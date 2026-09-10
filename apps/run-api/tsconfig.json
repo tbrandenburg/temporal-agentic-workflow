@@ -9,6 +9,7 @@
   "references": [
     { "path": "../../packages/workflows" },
     { "path": "../../packages/agent-contracts" },
-    { "path": "../../packages/worker" }
+    { "path": "../../packages/worker" },
+    { "path": "../../pipelines" }
   ]
 }

@@ -5,6 +5,13 @@ Derived from [INITIAL.md](INITIAL.md). This document turns the PoC brief into an
 **Status:** planning complete, implementation not started.
 **Last verified against upstream releases:** 2026-09-09.
 
+> This plan describes Phases 0–6: one hardcoded planner→coder→validate→reviewer
+> workflow. That workflow has since been generalized into a pipeline interpreter
+> that runs any named pipeline declared under `pipelines/` — see
+> [`docs/PROJECTS.md`](PROJECTS.md) for that refactor's plan and rationale, and
+> the repository-layout table in [`README.md`](../README.md) for the current
+> structure.
+
 ---
 
 ## 1. Research summary — state of the art
@@ -126,10 +133,10 @@ repo/
 │       ├── src/
 │       │   ├── store.ts               # put/get/presign against S3 API
 │       │   └── ref.ts                 # artifact:// URI parse/format
-├── prompts/
-│   ├── planner.md
-│   ├── coder.md
-│   └── reviewer.md
+├── prompts/                            # historical (Phases 0-6): superseded by
+│   ├── planner.md                      # `pipelines/coding-review/prompts/` — see
+│   ├── coder.md                        # docs/PROJECTS.md for the pipeline-interpreter
+│   └── reviewer.md                     # refactor that moved these under `pipelines/`.
 ├── infra/
 │   └── temporal/
 │       ├── docker-compose.yaml

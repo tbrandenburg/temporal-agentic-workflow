@@ -4,11 +4,7 @@
   "properties": {
     "role": {
       "type": "string",
-      "enum": [
-        "planner",
-        "coder",
-        "reviewer"
-      ]
+      "minLength": 1
     },
     "context": {
       "type": "object",
@@ -18,6 +14,10 @@
           "minLength": 1
         },
         "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pipeline": {
           "type": "string",
           "minLength": 1
         },
@@ -50,6 +50,7 @@
       "required": [
         "run_id",
         "repository",
+        "pipeline",
         "task_class",
         "instruction"
       ],
@@ -68,11 +69,7 @@
               },
               "agent": {
                 "type": "string",
-                "enum": [
-                  "planner",
-                  "coder",
-                  "reviewer"
-                ]
+                "minLength": 1
               },
               "status": {
                 "type": "string",
@@ -275,11 +272,22 @@
           }
         ]
       }
+    },
+    "promptFile": {
+      "type": "string",
+      "minLength": 1
+    },
+    "producesPatch": {
+      "type": "boolean"
+    },
+    "dryRun": {
+      "type": "boolean"
     }
   },
   "required": [
     "role",
-    "context"
+    "context",
+    "promptFile"
   ],
   "additionalProperties": false
 }

@@ -11,6 +11,10 @@
       "type": "string",
       "minLength": 1
     },
+    "pipeline": {
+      "type": "string",
+      "minLength": 1
+    },
     "task_class": {
       "type": "string",
       "enum": [
@@ -44,6 +48,7 @@
   },
   "required": [
     "repository",
+    "pipeline",
     "task_class",
     "instruction"
   ],

@@ -1,6 +1,6 @@
 import type { AgentInput } from '@poc/agent-contracts';
 import { describe, expect, it } from 'vitest';
-import { composePrompt, readRolePrompt } from '../prompt-composer';
+import { composePrompt, readPromptFile } from '../prompt-composer';
 
 const baseInput: AgentInput = {
   role: 'planner',
@@ -12,23 +12,28 @@ const baseInput: AgentInput = {
   },
 };
 
-describe('readRolePrompt', () => {
+describe('readPromptFile', () => {
   it('reads the planner prompt file', () => {
-    expect(readRolePrompt('planner')).toContain('planner agent');
+    expect(readPromptFile('pipelines/coding-review/prompts/planner.md')).toContain('planner agent');
   });
 
   it('reads the coder prompt file', () => {
-    expect(readRolePrompt('coder')).toContain('coder agent');
+    expect(readPromptFile('pipelines/coding-review/prompts/coder.md')).toContain('coder agent');
   });
 
   it('reads the reviewer prompt file', () => {
-    expect(readRolePrompt('reviewer')).toContain('reviewer agent');
+    expect(readPromptFile('pipelines/coding-review/prompts/reviewer.md')).toContain(
+      'reviewer agent',
+    );
   });
 });
 
 describe('composePrompt', () => {
   it('combines the role prompt with task context', () => {
-    const prompt = composePrompt(baseInput);
+    const prompt = composePrompt(
+      baseInput,
+      readPromptFile('pipelines/coding-review/prompts/planner.md'),
+    );
     expect(prompt).toContain('org/repo');
     expect(prompt).toContain('Add a dark mode toggle.');
     expect(prompt).toContain('feature');
@@ -55,13 +60,19 @@ describe('composePrompt', () => {
         },
       ],
     };
-    const prompt = composePrompt(withUpstream);
+    const prompt = composePrompt(
+      withUpstream,
+      readPromptFile('pipelines/coding-review/prompts/coder.md'),
+    );
     expect(prompt).toContain('Upstream results');
     expect(prompt).toContain('Planned it.');
   });
 
   it('omits the upstream section when there is no upstream', () => {
-    const prompt = composePrompt(baseInput);
+    const prompt = composePrompt(
+      baseInput,
+      readPromptFile('pipelines/coding-review/prompts/planner.md'),
+    );
     expect(prompt).not.toContain('Upstream results');
   });
 });
