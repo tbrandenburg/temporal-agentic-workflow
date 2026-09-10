@@ -1,0 +1,402 @@
+{
+  "events": [
+    {
+      "eventId": "1",
+      "eventTime": "2026-09-09T23:42:38.861165250Z",
+      "eventType": "WorkflowExecutionStarted",
+      "taskId": "5242965",
+      "workflowExecutionStartedEventAttributes": {
+        "workflowType": {
+          "name": "agentRunWorkflow"
+        },
+        "taskQueue": {
+          "name": "agent-default",
+          "kind": "Normal"
+        },
+        "input": {
+          "payloads": [
+            {
+              "metadata": {
+                "encoding": "anNvbi9wbGFpbg=="
+              },
+              "data": "eyJyZXBvc2l0b3J5IjoibG9jYWwvZml4dHVyZSIsInRhc2tfY2xhc3MiOiJmZWF0dXJlIiwiaW5zdHJ1Y3Rpb24iOiJQaGFzZSA2IHNjZW5hcmlvIDMgaW52YWxpZCBhZ2VudCBKU09OIiwicnVuX2lkIjoiMDFNMjQ4VE43WksyRVJLMlFNRVJaU0VWUFQifQ=="
+            }
+          ]
+        },
+        "workflowTaskTimeout": "10s",
+        "originalExecutionRunId": "01a0888d-550d-727e-85da-26b4ec7542f4",
+        "identity": "1894063@tom-nuc7",
+        "firstExecutionRunId": "01a0888d-550d-727e-85da-26b4ec7542f4",
+        "attempt": 1,
+        "firstWorkflowTaskBackoff": "0s",
+        "searchAttributes": {
+          "indexedFields": {
+            "Repository": {
+              "metadata": {
+                "encoding": "anNvbi9wbGFpbg==",
+                "type": "S2V5d29yZA=="
+              },
+              "data": "ImxvY2FsL2ZpeHR1cmUi"
+            },
+            "TaskClass": {
+              "metadata": {
+                "encoding": "anNvbi9wbGFpbg==",
+                "type": "S2V5d29yZA=="
+              },
+              "data": "ImZlYXR1cmUi"
+            },
+            "TaskRunId": {
+              "metadata": {
+                "encoding": "anNvbi9wbGFpbg==",
+                "type": "S2V5d29yZA=="
+              },
+              "data": "IjAxTTI0OFRON1pLMkVSSzJRTUVSWlNFVlBUIg=="
+            }
+          }
+        },
+        "header": {}
+      }
+    },
+    {
+      "eventId": "2",
+      "eventTime": "2026-09-09T23:42:38.861358270Z",
+      "eventType": "WorkflowTaskScheduled",
+      "taskId": "5242966",
+      "workflowTaskScheduledEventAttributes": {
+        "taskQueue": {
+          "name": "agent-default",
+          "kind": "Normal"
+        },
+        "startToCloseTimeout": "10s",
+        "attempt": 1
+      }
+    },
+    {
+      "eventId": "3",
+      "eventTime": "2026-09-09T23:42:39.038787060Z",
+      "eventType": "WorkflowTaskStarted",
+      "taskId": "5242971",
+      "workflowTaskStartedEventAttributes": {
+        "scheduledEventId": "2",
+        "identity": "1918215@tom-nuc7",
+        "requestId": "0be97652-9d31-44b4-882e-4e2ea16aa501",
+        "historySizeBytes": "675"
+      }
+    },
+    {
+      "eventId": "4",
+      "eventTime": "2026-09-09T23:42:40.304319378Z",
+      "eventType": "WorkflowTaskCompleted",
+      "taskId": "5242975",
+      "workflowTaskCompletedEventAttributes": {
+        "scheduledEventId": "2",
+        "startedEventId": "3",
+        "identity": "1918215@tom-nuc7",
+        "workerVersioningId": {
+          "workerBuildId": "@temporalio/worker@1.23.0+ee2995289d128af33431231e44a83c37a2c2a76c44ec0d2702403f6bd049891d"
+        },
+        "sdkMetadata": {
+          "coreUsedFlags": [2, 1, 3]
+        },
+        "meteringMetadata": {}
+      }
+    },
+    {
+      "eventId": "5",
+      "eventTime": "2026-09-09T23:42:40.307049100Z",
+      "eventType": "UpsertWorkflowSearchAttributes",
+      "taskId": "5242976",
+      "upsertWorkflowSearchAttributesEventAttributes": {
+        "workflowTaskCompletedEventId": "4",
+        "searchAttributes": {
+          "indexedFields": {
+            "RunStatus": {
+              "metadata": {
+                "encoding": "anNvbi9wbGFpbg==",
+                "type": "S2V5d29yZA=="
+              },
+              "data": "ImluaXRpYWxpemluZyI="
+            }
+          }
+        }
+      }
+    },
+    {
+      "eventId": "6",
+      "eventTime": "2026-09-09T23:42:40.307121959Z",
+      "eventType": "ActivityTaskScheduled",
+      "taskId": "5242977",
+      "activityTaskScheduledEventAttributes": {
+        "activityId": "1",
+        "activityType": {
+          "name": "initializeRun"
+        },
+        "taskQueue": {
+          "name": "agent-default",
+          "kind": "Normal"
+        },
+        "header": {},
+        "input": {
+          "payloads": [
+            {
+              "metadata": {
+                "encoding": "anNvbi9wbGFpbg=="
+              },
+              "data": "eyJyZXBvc2l0b3J5IjoibG9jYWwvZml4dHVyZSIsInRhc2tfY2xhc3MiOiJmZWF0dXJlIiwiaW5zdHJ1Y3Rpb24iOiJQaGFzZSA2IHNjZW5hcmlvIDMgaW52YWxpZCBhZ2VudCBKU09OIiwicnVuX2lkIjoiMDFNMjQ4VE43WksyRVJLMlFNRVJaU0VWUFQifQ=="
+            }
+          ]
+        },
+        "scheduleToCloseTimeout": "0s",
+        "scheduleToStartTimeout": "0s",
+        "startToCloseTimeout": "30s",
+        "heartbeatTimeout": "0s",
+        "workflowTaskCompletedEventId": "4",
+        "retryPolicy": {
+          "initialInterval": "1s",
+          "backoffCoefficient": 2,
+          "maximumInterval": "100s",
+          "maximumAttempts": 3
+        }
+      }
+    },
+    {
+      "eventId": "7",
+      "eventTime": "2026-09-09T23:42:40.408855866Z",
+      "eventType": "ActivityTaskStarted",
+      "taskId": "5242983",
+      "activityTaskStartedEventAttributes": {
+        "scheduledEventId": "6",
+        "identity": "1918215@tom-nuc7",
+        "requestId": "8b556e4b-5e39-4b8a-9242-72ae9663b53a",
+        "attempt": 1
+      }
+    },
+    {
+      "eventId": "8",
+      "eventTime": "2026-09-09T23:42:40.624287798Z",
+      "eventType": "ActivityTaskCompleted",
+      "taskId": "5242984",
+      "activityTaskCompletedEventAttributes": {
+        "result": {
+          "payloads": [
+            {
+              "metadata": {
+                "encoding": "anNvbi9wbGFpbg=="
+              },
+              "data": "eyJydW5faWQiOiIwMU0yNDhUTjdaSzJFUksyUU1FUlpTRVZQVCIsInJlcG9zaXRvcnkiOiJsb2NhbC9maXh0dXJlIiwidGFza19jbGFzcyI6ImZlYXR1cmUiLCJpbnN0cnVjdGlvbiI6IlBoYXNlIDYgc2NlbmFyaW8gMyBpbnZhbGlkIGFnZW50IEpTT04ifQ=="
+            }
+          ]
+        },
+        "scheduledEventId": "6",
+        "startedEventId": "7",
+        "identity": "1918215@tom-nuc7"
+      }
+    },
+    {
+      "eventId": "9",
+      "eventTime": "2026-09-09T23:42:40.624297811Z",
+      "eventType": "WorkflowTaskScheduled",
+      "taskId": "5242985",
+      "workflowTaskScheduledEventAttributes": {
+        "taskQueue": {
+          "name": "1918215@tom-nuc7-d8c79d5186c943279921ab8e729d80b6",
+          "kind": "Sticky"
+        },
+        "startToCloseTimeout": "10s",
+        "attempt": 1
+      }
+    },
+    {
+      "eventId": "10",
+      "eventTime": "2026-09-09T23:42:40.762682624Z",
+      "eventType": "WorkflowTaskStarted",
+      "taskId": "5242989",
+      "workflowTaskStartedEventAttributes": {
+        "scheduledEventId": "9",
+        "identity": "1918215@tom-nuc7",
+        "requestId": "0fc56c5e-0b29-4be2-8a76-e4da58de0a00",
+        "historySizeBytes": "1945"
+      }
+    },
+    {
+      "eventId": "11",
+      "eventTime": "2026-09-09T23:42:40.891490163Z",
+      "eventType": "WorkflowTaskCompleted",
+      "taskId": "5242993",
+      "workflowTaskCompletedEventAttributes": {
+        "scheduledEventId": "9",
+        "startedEventId": "10",
+        "identity": "1918215@tom-nuc7",
+        "workerVersioningId": {
+          "workerBuildId": "@temporalio/worker@1.23.0+ee2995289d128af33431231e44a83c37a2c2a76c44ec0d2702403f6bd049891d"
+        },
+        "sdkMetadata": {},
+        "meteringMetadata": {}
+      }
+    },
+    {
+      "eventId": "12",
+      "eventTime": "2026-09-09T23:42:40.894897193Z",
+      "eventType": "UpsertWorkflowSearchAttributes",
+      "taskId": "5242994",
+      "upsertWorkflowSearchAttributesEventAttributes": {
+        "workflowTaskCompletedEventId": "11",
+        "searchAttributes": {
+          "indexedFields": {
+            "RunStatus": {
+              "metadata": {
+                "encoding": "anNvbi9wbGFpbg==",
+                "type": "S2V5d29yZA=="
+              },
+              "data": "InBsYW5uaW5nIg=="
+            }
+          }
+        }
+      }
+    },
+    {
+      "eventId": "13",
+      "eventTime": "2026-09-09T23:42:40.894974190Z",
+      "eventType": "ActivityTaskScheduled",
+      "taskId": "5242995",
+      "activityTaskScheduledEventAttributes": {
+        "activityId": "2",
+        "activityType": {
+          "name": "runAgent"
+        },
+        "taskQueue": {
+          "name": "agent-default",
+          "kind": "Normal"
+        },
+        "header": {},
+        "input": {
+          "payloads": [
+            {
+              "metadata": {
+                "encoding": "anNvbi9wbGFpbg=="
+              },
+              "data": "eyJyb2xlIjoicGxhbm5lciIsImNvbnRleHQiOnsicnVuX2lkIjoiMDFNMjQ4VE43WksyRVJLMlFNRVJaU0VWUFQiLCJyZXBvc2l0b3J5IjoibG9jYWwvZml4dHVyZSIsInRhc2tfY2xhc3MiOiJmZWF0dXJlIiwiaW5zdHJ1Y3Rpb24iOiJQaGFzZSA2IHNjZW5hcmlvIDMgaW52YWxpZCBhZ2VudCBKU09OIn19"
+            }
+          ]
+        },
+        "scheduleToCloseTimeout": "0s",
+        "scheduleToStartTimeout": "0s",
+        "startToCloseTimeout": "1200s",
+        "heartbeatTimeout": "30s",
+        "workflowTaskCompletedEventId": "11",
+        "retryPolicy": {
+          "initialInterval": "5s",
+          "backoffCoefficient": 2,
+          "maximumInterval": "500s",
+          "maximumAttempts": 3,
+          "nonRetryableErrorTypes": ["InvalidAgentOutputError", "ModelNotAllowedError"]
+        }
+      }
+    },
+    {
+      "eventId": "14",
+      "eventTime": "2026-09-09T23:42:41.007936377Z",
+      "eventType": "ActivityTaskStarted",
+      "taskId": "5243001",
+      "activityTaskStartedEventAttributes": {
+        "scheduledEventId": "13",
+        "identity": "1918215@tom-nuc7",
+        "requestId": "247806c8-b7a7-475c-b59e-1c9427c2f16e",
+        "attempt": 1
+      }
+    },
+    {
+      "eventId": "15",
+      "eventTime": "2026-09-09T23:42:41.184290052Z",
+      "eventType": "ActivityTaskFailed",
+      "taskId": "5243002",
+      "activityTaskFailedEventAttributes": {
+        "failure": {
+          "message": "agent output failed AgentResult validation: [\n  {\n    \"origin\": \"string\",\n    \"code\": \"too_big\",\n    \"maximum\": 2048,\n    \"inclusive\": true,\n    \"path\": [\n      \"summary\"\n    ],\n    \"message\": \"summary must be capped at 2 KiB\"\n  }\n]",
+          "source": "TypeScriptSDK",
+          "stackTrace": "InvalidAgentOutputError: agent output failed AgentResult validation: [\n  {\n    \"origin\": \"string\",\n    \"code\": \"too_big\",\n    \"maximum\": 2048,\n    \"inclusive\": true,\n    \"path\": [\n      \"summary\"\n    ],\n    \"message\": \"summary must be capped at 2 KiB\"\n  }\n]\n    at normalizeAgentResult (/home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/packages/agent-runtime/dist/result-normalizer.js:46:15)\n    at runAgent (/home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/packages/worker/dist/activities/run-agent.js:110:57)\n    at async Activity.execute (/home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/node_modules/.pnpm/@temporalio+worker@1.23.0_esbuild@0.28.2_lightningcss@1.33.0_postcss@8.5.28/node_modules/@temporalio/worker/lib/activity.js:104:20)\n    at async InternalNativeConnection.withAbortSignal (/home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/node_modules/.pnpm/@temporalio+worker@1.23.0_esbuild@0.28.2_lightningcss@1.33.0_postcss@8.5.28/node_modules/@temporalio/worker/lib/connection.js:172:16)\n    at async Client.withAbortSignal (/home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/node_modules/.pnpm/@temporalio+client@1.23.0/node_modules/@temporalio/client/lib/base-client.js:65:16)\n    at async /home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/node_modules/.pnpm/@temporalio+worker@1.23.0_esbuild@0.28.2_lightningcss@1.33.0_postcss@8.5.28/node_modules/@temporalio/worker/lib/activity.js:164:32\n    at async /home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/node_modules/.pnpm/@temporalio+worker@1.23.0_esbuild@0.28.2_lightningcss@1.33.0_postcss@8.5.28/node_modules/@temporalio/worker/lib/worker.js:811:30",
+          "applicationFailureInfo": {
+            "type": "InvalidAgentOutputError"
+          }
+        },
+        "scheduledEventId": "13",
+        "startedEventId": "14",
+        "identity": "1918215@tom-nuc7",
+        "retryState": "NonRetryableFailure"
+      }
+    },
+    {
+      "eventId": "16",
+      "eventTime": "2026-09-09T23:42:41.184301756Z",
+      "eventType": "WorkflowTaskScheduled",
+      "taskId": "5243003",
+      "workflowTaskScheduledEventAttributes": {
+        "taskQueue": {
+          "name": "1918215@tom-nuc7-d8c79d5186c943279921ab8e729d80b6",
+          "kind": "Sticky"
+        },
+        "startToCloseTimeout": "10s",
+        "attempt": 1
+      }
+    },
+    {
+      "eventId": "17",
+      "eventTime": "2026-09-09T23:42:41.268582991Z",
+      "eventType": "WorkflowTaskStarted",
+      "taskId": "5243007",
+      "workflowTaskStartedEventAttributes": {
+        "scheduledEventId": "16",
+        "identity": "1918215@tom-nuc7",
+        "requestId": "3e20d733-4dae-4da0-bf40-3c8f177e0570",
+        "historySizeBytes": "5070"
+      }
+    },
+    {
+      "eventId": "18",
+      "eventTime": "2026-09-09T23:42:41.620019909Z",
+      "eventType": "WorkflowTaskCompleted",
+      "taskId": "5243011",
+      "workflowTaskCompletedEventAttributes": {
+        "scheduledEventId": "16",
+        "startedEventId": "17",
+        "identity": "1918215@tom-nuc7",
+        "workerVersioningId": {
+          "workerBuildId": "@temporalio/worker@1.23.0+ee2995289d128af33431231e44a83c37a2c2a76c44ec0d2702403f6bd049891d"
+        },
+        "sdkMetadata": {},
+        "meteringMetadata": {}
+      }
+    },
+    {
+      "eventId": "19",
+      "eventTime": "2026-09-09T23:42:41.620087778Z",
+      "eventType": "WorkflowExecutionFailed",
+      "taskId": "5243012",
+      "workflowExecutionFailedEventAttributes": {
+        "failure": {
+          "message": "Activity task failed",
+          "cause": {
+            "message": "agent output failed AgentResult validation: [\n  {\n    \"origin\": \"string\",\n    \"code\": \"too_big\",\n    \"maximum\": 2048,\n    \"inclusive\": true,\n    \"path\": [\n      \"summary\"\n    ],\n    \"message\": \"summary must be capped at 2 KiB\"\n  }\n]",
+            "source": "TypeScriptSDK",
+            "stackTrace": "InvalidAgentOutputError: agent output failed AgentResult validation: [\n  {\n    \"origin\": \"string\",\n    \"code\": \"too_big\",\n    \"maximum\": 2048,\n    \"inclusive\": true,\n    \"path\": [\n      \"summary\"\n    ],\n    \"message\": \"summary must be capped at 2 KiB\"\n  }\n]\n    at normalizeAgentResult (/home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/packages/agent-runtime/dist/result-normalizer.js:46:15)\n    at runAgent (/home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/packages/worker/dist/activities/run-agent.js:110:57)\n    at async Activity.execute (/home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/node_modules/.pnpm/@temporalio+worker@1.23.0_esbuild@0.28.2_lightningcss@1.33.0_postcss@8.5.28/node_modules/@temporalio/worker/lib/activity.js:104:20)\n    at async InternalNativeConnection.withAbortSignal (/home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/node_modules/.pnpm/@temporalio+worker@1.23.0_esbuild@0.28.2_lightningcss@1.33.0_postcss@8.5.28/node_modules/@temporalio/worker/lib/connection.js:172:16)\n    at async Client.withAbortSignal (/home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/node_modules/.pnpm/@temporalio+client@1.23.0/node_modules/@temporalio/client/lib/base-client.js:65:16)\n    at async /home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/node_modules/.pnpm/@temporalio+worker@1.23.0_esbuild@0.28.2_lightningcss@1.33.0_postcss@8.5.28/node_modules/@temporalio/worker/lib/activity.js:164:32\n    at async /home/tom/workspace/ai/made/workspace/temporal-agentic-workflow/node_modules/.pnpm/@temporalio+worker@1.23.0_esbuild@0.28.2_lightningcss@1.33.0_postcss@8.5.28/node_modules/@temporalio/worker/lib/worker.js:811:30",
+            "applicationFailureInfo": {
+              "type": "InvalidAgentOutputError"
+            }
+          },
+          "activityFailureInfo": {
+            "scheduledEventId": "13",
+            "startedEventId": "14",
+            "identity": "1918215@tom-nuc7",
+            "activityType": {
+              "name": "runAgent"
+            },
+            "activityId": "2",
+            "retryState": "NonRetryableFailure"
+          }
+        },
+        "retryState": "RetryPolicyNotSet",
+        "workflowTaskCompletedEventId": "18"
+      }
+    }
+  ]
+}

@@ -10,8 +10,15 @@ import {
 } from '@poc/agent-runtime';
 import { createWorkspace } from '@poc/agent-tools';
 import { ArtifactStore, loadArtifactStoreConfigFromEnv } from '@poc/artifact-store';
-import { cancellationSignal, cancelled, heartbeat } from '@temporalio/activity';
+import { Context, cancellationSignal, cancelled, heartbeat } from '@temporalio/activity';
 import { execa } from 'execa';
+import {
+  maybeCorruptPatch,
+  maybeCorruptSummary,
+  maybeDelay,
+  maybeEditCoderWorkspace,
+  maybeThrowTransient,
+} from './evidence-fault-injection';
 
 /** Duck-typed subset of `ArtifactStore` — matches `validate-patch.ts`'s `ArtifactSink`. */
 export interface ArtifactSink {
@@ -81,11 +88,19 @@ export async function runAgent(input: AgentInput, deps: RunAgentDeps = {}): Prom
 
   const prompt = composePrompt(input);
   const isCoder = role === 'coder';
+  // Real Temporal attempt number, not a hardcoded `1` — a retry (whether
+  // from a transient failure or a worker crashing mid-activity, PLAN §9
+  // Phase 6 scenario 1) must get its own fresh workspace directory
+  // (`ws-<attempt>`), matching `createWorkspace`'s documented guarantee
+  // that "a retry never inherits a half-applied patch from a crashed
+  // attempt" (PLAN §5.3) — a bare `attempt: 1` here defeated that
+  // guarantee for every retry.
+  const attempt = Context.current().info.attempt;
   const seededWorkspace = isCoder
     ? await createWorkspace({
         sourceRepoPath: deps.fixtureRepoPath ?? DEFAULT_FIXTURE_REPO_PATH,
         runId: context.run_id,
-        attempt: 1,
+        attempt,
         workspaceRoot: join(tmpdir(), 'agent-run-coder-workspaces'),
       })
     : undefined;
@@ -101,12 +116,20 @@ export async function runAgent(input: AgentInput, deps: RunAgentDeps = {}): Prom
   heartbeatTimer.unref?.();
 
   try {
+    // Evidence-only hooks (PLAN §9 Phase 6): every one of these is a no-op
+    // unless the matching `EVIDENCE_*` env var is set — see
+    // `evidence-fault-injection.ts` for why each exists.
+    maybeThrowTransient(role);
+    await maybeDelay(role);
+    if (isCoder) await maybeEditCoderWorkspace(workspace);
+
     const raw = await runOpencode(prompt, {
       dir: workspace,
       signal: cancellationSignal(),
       ...(deps.opencodeBinary ? { binary: deps.opencodeBinary } : {}),
       ...(context.requested_model ? { model: context.requested_model } : {}),
     });
+    raw.finalText = maybeCorruptSummary(role, raw.finalText);
 
     const artifactRefs: Record<string, string> = {};
     if (isCoder) {
@@ -115,7 +138,8 @@ export async function runAgent(input: AgentInput, deps: RunAgentDeps = {}): Prom
       // `execa` strips the trailing newline from captured stdout, but
       // `git apply` requires every line — including the last — to be
       // newline-terminated, or it rejects the whole patch as corrupt.
-      const diffText = rawDiff.length > 0 && !rawDiff.endsWith('\n') ? `${rawDiff}\n` : rawDiff;
+      let diffText = rawDiff.length > 0 && !rawDiff.endsWith('\n') ? `${rawDiff}\n` : rawDiff;
+      diffText = maybeCorruptPatch(diffText);
       if (diffText.trim().length > 0) {
         const store = deps.artifactStore ?? new ArtifactStore(loadArtifactStoreConfigFromEnv());
         artifactRefs.patch = await store.put(context.run_id, role, 'patch.diff', diffText);

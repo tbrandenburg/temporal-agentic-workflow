@@ -23,8 +23,11 @@ const { Connection } = require('@temporalio/client');
 // write path needs the numeric value.
 const INDEXED_VALUE_TYPE_KEYWORD = 2;
 
+// `TaskRunId`, not `RunId` — see the NOTE in
+// packages/agent-contracts/src/search-attributes.ts: "RunId" is a
+// Temporal-reserved system attribute and cannot be set as a custom one.
 const ATTRIBUTES = {
-  RunId: INDEXED_VALUE_TYPE_KEYWORD,
+  TaskRunId: INDEXED_VALUE_TYPE_KEYWORD,
   Repository: INDEXED_VALUE_TYPE_KEYWORD,
   RunStatus: INDEXED_VALUE_TYPE_KEYWORD,
   RequestedModel: INDEXED_VALUE_TYPE_KEYWORD,

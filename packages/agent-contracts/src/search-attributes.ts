@@ -8,7 +8,16 @@ import { defineSearchAttributeKey, SearchAttributeType } from '@temporalio/commo
  * module only defines the typed keys used by `upsertSearchAttributes` /
  * `typedSearchAttributes`, it does not perform registration.
  */
-export const RunIdKey = defineSearchAttributeKey('RunId', SearchAttributeType.KEYWORD);
+// NOTE (discovered during Phase 6 evidence capture, see
+// docs/evidence/phase-6/): PLAN §4.2 named this attribute "RunId", but
+// Temporal reserves that exact name for the system attribute holding the
+// real workflow Run ID — `upsertSearchAttributes`/`typedSearchAttributes`
+// reject any attempt to set it, even though `listSearchAttributes` reports
+// it as already "registered" (it's a system, not custom, attribute), which
+// made the collision invisible until a live `POST /runs` was actually
+// exercised end-to-end. Renamed to `TaskRunId` to hold our business
+// `TaskRequest.run_id` instead.
+export const RunIdKey = defineSearchAttributeKey('TaskRunId', SearchAttributeType.KEYWORD);
 export const RepositoryKey = defineSearchAttributeKey('Repository', SearchAttributeType.KEYWORD);
 export const RunStatusKey = defineSearchAttributeKey('RunStatus', SearchAttributeType.KEYWORD);
 export const RequestedModelKey = defineSearchAttributeKey(

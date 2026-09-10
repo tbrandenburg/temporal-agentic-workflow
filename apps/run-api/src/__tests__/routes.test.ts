@@ -52,7 +52,7 @@ describe('GET /runs/:runId and POST /runs/:runId/cancel', () => {
       namespace: env.namespace ?? 'default',
       searchAttributes: {
         RunStatus: 2 /* KEYWORD */,
-        RunId: 2,
+        TaskRunId: 2,
         Repository: 2,
         TaskClass: 2,
       },

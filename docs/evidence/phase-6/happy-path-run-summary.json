@@ -1,0 +1,107 @@
+{
+  "run_id": "01M248AV3EHD7APT6B5N7QKRJB",
+  "workflow_id": "agent-run/01M248AV3EHD7APT6B5N7QKRJB",
+  "run_status": "succeeded",
+  "workflow_status": "COMPLETED",
+  "summary": {
+    "run_id": "01M248AV3EHD7APT6B5N7QKRJB",
+    "status": "succeeded",
+    "plan": {
+      "run_id": "01M248AV3EHD7APT6B5N7QKRJB",
+      "agent": "planner",
+      "status": "success",
+      "summary": "[mock] processed prompt of 466 chars",
+      "confidence": 0.8,
+      "artifact_refs": {},
+      "metrics": {
+        "started_at": "1970-01-01T00:00:00.000Z",
+        "ended_at": "1970-01-01T00:00:00.001Z",
+        "duration_ms": 1,
+        "exit_code": 0
+      }
+    },
+    "code": {
+      "run_id": "01M248AV3EHD7APT6B5N7QKRJB",
+      "agent": "coder",
+      "status": "success",
+      "summary": "[mock] processed prompt of 462 chars",
+      "confidence": 0.8,
+      "artifact_refs": { "patch": "artifact://runs/01M248AV3EHD7APT6B5N7QKRJB/coder/patch.diff" },
+      "metrics": {
+        "started_at": "1970-01-01T00:00:00.000Z",
+        "ended_at": "1970-01-01T00:00:00.001Z",
+        "duration_ms": 1,
+        "exit_code": 0
+      }
+    },
+    "validation": {
+      "run_id": "01M248AV3EHD7APT6B5N7QKRJB",
+      "status": "passed",
+      "steps": [
+        { "name": "allowlist", "status": "passed", "duration_ms": 0 },
+        { "name": "apply", "status": "passed", "duration_ms": 30 },
+        {
+          "name": "format",
+          "status": "passed",
+          "duration_ms": 672,
+          "output_ref": "artifact://runs/01M248AV3EHD7APT6B5N7QKRJB/validation/format.log"
+        },
+        {
+          "name": "lint",
+          "status": "passed",
+          "duration_ms": 742,
+          "output_ref": "artifact://runs/01M248AV3EHD7APT6B5N7QKRJB/validation/lint.log"
+        },
+        {
+          "name": "test",
+          "status": "passed",
+          "duration_ms": 672,
+          "output_ref": "artifact://runs/01M248AV3EHD7APT6B5N7QKRJB/validation/test.log"
+        },
+        { "name": "secret-scan", "status": "passed", "duration_ms": 0 }
+      ],
+      "violations": [],
+      "artifact_refs": {
+        "format": "artifact://runs/01M248AV3EHD7APT6B5N7QKRJB/validation/format.log",
+        "lint": "artifact://runs/01M248AV3EHD7APT6B5N7QKRJB/validation/lint.log",
+        "test": "artifact://runs/01M248AV3EHD7APT6B5N7QKRJB/validation/test.log"
+      }
+    },
+    "review": {
+      "run_id": "01M248AV3EHD7APT6B5N7QKRJB",
+      "agent": "reviewer",
+      "status": "success",
+      "summary": "[mock] processed prompt of 619 chars",
+      "confidence": 0.8,
+      "artifact_refs": {},
+      "metrics": {
+        "started_at": "1970-01-01T00:00:00.000Z",
+        "ended_at": "1970-01-01T00:00:00.001Z",
+        "duration_ms": 1,
+        "exit_code": 0
+      }
+    },
+    "artifact_manifest": [
+      {
+        "ref": "artifact://runs/01M248AV3EHD7APT6B5N7QKRJB/coder/patch.diff",
+        "url": "http://localhost:9500/agent-artifacts/runs/01M248AV3EHD7APT6B5N7QKRJB/coder/patch.diff?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=minioadmin%2F20260909%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260909T233405Z&X-Amz-Expires=3600&X-Amz-Signature=30b257ea4dca0ea1035fce6247248b8c1f967d59dc83687a0f5025a47f12cccc&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
+        "expires_at": "2026-09-10T00:34:05.868Z"
+      },
+      {
+        "ref": "artifact://runs/01M248AV3EHD7APT6B5N7QKRJB/validation/format.log",
+        "url": "http://localhost:9500/agent-artifacts/runs/01M248AV3EHD7APT6B5N7QKRJB/validation/format.log?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=minioadmin%2F20260909%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260909T233405Z&X-Amz-Expires=3600&X-Amz-Signature=ed69d102dcf988b9aa60b5e1425ee81ad2bcd23f7f3fcea409ea2cb38c3eb08d&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
+        "expires_at": "2026-09-10T00:34:05.872Z"
+      },
+      {
+        "ref": "artifact://runs/01M248AV3EHD7APT6B5N7QKRJB/validation/lint.log",
+        "url": "http://localhost:9500/agent-artifacts/runs/01M248AV3EHD7APT6B5N7QKRJB/validation/lint.log?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=minioadmin%2F20260909%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260909T233405Z&X-Amz-Expires=3600&X-Amz-Signature=cd735a98317a602723c36a51e3415a79a1a28de131d711f043a884f6789a0a37&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
+        "expires_at": "2026-09-10T00:34:05.883Z"
+      },
+      {
+        "ref": "artifact://runs/01M248AV3EHD7APT6B5N7QKRJB/validation/test.log",
+        "url": "http://localhost:9500/agent-artifacts/runs/01M248AV3EHD7APT6B5N7QKRJB/validation/test.log?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=minioadmin%2F20260909%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260909T233405Z&X-Amz-Expires=3600&X-Amz-Signature=62bc4b1a596f6af3cadd45059a34218d9f74b09d6017204daf50c25f5ab11184&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
+        "expires_at": "2026-09-10T00:34:05.886Z"
+      }
+    ]
+  }
+}
