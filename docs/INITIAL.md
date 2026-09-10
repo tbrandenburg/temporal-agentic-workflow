@@ -1,5 +1,11 @@
 No further clarification is needed—the earlier choices transfer cleanly. Here, Temporal owns the run’s durable state and execution semantics; Node workers own opencode run; artifact storage holds large outputs.
 
+> **Note (post-implementation):** the fixed `planner → coder → validate → reviewer`
+> pipeline below was the first pipeline built from this brief. The workflow has
+> since been generalized into a pipeline interpreter that runs any named pipeline
+> declared under `pipelines/` (this one is now `pipelines/coding-review/`) — see
+> [`docs/PROJECTS.md`](PROJECTS.md).
+
 PoC goal
 
 Prove a locally deployed Temporal workflow that accepts an API task and runs:

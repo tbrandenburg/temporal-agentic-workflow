@@ -3,6 +3,7 @@ import { taskRequestSchema } from '../task-request';
 
 const validSample = {
   repository: 'org/repo',
+  pipeline: 'coding-review',
   task_class: 'feature',
   instruction: 'Add a dark mode toggle.',
 };
@@ -22,6 +23,15 @@ describe('taskRequestSchema', () => {
 
   it('rejects an empty instruction', () => {
     expect(taskRequestSchema.safeParse({ ...validSample, instruction: '' }).success).toBe(false);
+  });
+
+  it('rejects a missing pipeline', () => {
+    const { pipeline: _pipeline, ...withoutPipeline } = validSample;
+    expect(taskRequestSchema.safeParse(withoutPipeline).success).toBe(false);
+  });
+
+  it('rejects an empty pipeline', () => {
+    expect(taskRequestSchema.safeParse({ ...validSample, pipeline: '' }).success).toBe(false);
   });
 
   it('rejects an unknown task_class', () => {

@@ -12,6 +12,7 @@ import { validationResultSchema } from './validation-result';
 export const runContextSchema = z.object({
   run_id: z.string().min(1),
   repository: z.string().min(1),
+  pipeline: z.string().min(1),
   task_class: z.enum(['feature', 'bugfix', 'refactor', 'chore']),
   instruction: z.string().min(1).max(8000),
   requested_model: z.string().min(1).optional(),
@@ -34,6 +35,12 @@ export const agentInputSchema = z.object({
   role: agentRoleSchema,
   context: runContextSchema,
   upstream: z.array(z.union([agentResultSchema, validationResultSchema])).optional(),
+  /** Project-relative (repo-root-relative) path to this step's prompt markdown file. */
+  promptFile: z.string().min(1),
+  /** Whether this step produces a patch artifact (workspace seeding, `git diff` capture). */
+  producesPatch: z.boolean().optional(),
+  /** Per-step override: force this step's `opencode` invocation to mock mode. */
+  dryRun: z.boolean().optional(),
 });
 
 export type AgentInput = z.infer<typeof agentInputSchema>;

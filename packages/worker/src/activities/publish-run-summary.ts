@@ -18,14 +18,21 @@ function collectArtifactRefs(
 
 /**
  * `publishRunSummary` — assembles the terminal `RunSummary` (PLAN §5.1) and
- * presigns every distinct `artifact://` ref collected across the four
- * upstream results into a manifest, per PLAN §8 ("RunSummary with its
- * artifact manifest (presigned URLs)"). No artifacts means no presign
- * calls — the mock-mode Phase 3 evidence run never touches MinIO.
+ * presigns every distinct `artifact://` ref collected across every step
+ * result into a manifest, per PLAN §8 ("RunSummary with its artifact
+ * manifest (presigned URLs)"). No artifacts means no presign calls — the
+ * mock-mode Phase 3 evidence run never touches MinIO.
+ *
+ * Generalized per PLAN Step 4 / this step's documented deviation:
+ * `results` is a generic step-id-keyed map (not fixed `plan`/`code`/
+ * `validation`/`review` fields), and `status` is passed through explicitly
+ * by the workflow (computed once from the last validation-kind step, or
+ * `succeeded` if there is none) rather than re-derived here from a
+ * hardcoded `validation` field.
  */
 export async function publishRunSummary(input: PublishRunSummaryInput): Promise<RunSummary> {
-  const { context, plan, code, validation, review } = input;
-  const refs = collectArtifactRefs([plan, code, validation, review]);
+  const { context, results, status } = input;
+  const refs = collectArtifactRefs(Object.values(results));
 
   const artifactManifest: RunSummary['artifact_manifest'] = [];
   if (refs.size > 0) {
@@ -42,11 +49,8 @@ export async function publishRunSummary(input: PublishRunSummaryInput): Promise<
 
   return {
     run_id: context.run_id,
-    status: validation.status === 'failed' ? 'failed' : 'succeeded',
-    plan,
-    code,
-    validation,
-    review,
+    status,
+    steps: results,
     artifact_manifest: artifactManifest,
   };
 }

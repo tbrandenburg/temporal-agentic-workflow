@@ -75,7 +75,11 @@ describe('runAgent cancellation (PLAN §1.2 point 3 / §6.3)', () => {
 
     const runPromise = env.run(
       (input, deps) => runAgent(input, deps),
-      { role: 'planner', context: buildContext(runId) },
+      {
+        role: 'planner',
+        context: buildContext(runId),
+        promptFile: 'pipelines/coding-review/prompts/planner.md',
+      },
       { artifactStore, opencodeBinary: STUB_HANG },
     );
 

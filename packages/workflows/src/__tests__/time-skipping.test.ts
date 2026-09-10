@@ -1,10 +1,19 @@
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import type { AgentResult, RunContext, TaskRequest, ValidationResult } from '@poc/agent-contracts';
+import type {
+  AgentResult,
+  PipelineDefinition,
+  RunContext,
+  TaskRequest,
+  ValidationResult,
+} from '@poc/agent-contracts';
 import { Context as ActivityContext } from '@temporalio/activity';
 import { TestWorkflowEnvironment } from '@temporalio/testing';
 import { Worker } from '@temporalio/worker';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { registry } from '../../../../pipelines/registry';
+
+const codingReviewPipeline: PipelineDefinition = registry['coding-review'];
 
 /**
  * A real `Error` subclass, matching how `@poc/worker`'s `result-normalizer`
@@ -54,6 +63,7 @@ describe('agentRunWorkflow retry and timeout paths (time-skipping)', () => {
     return {
       run_id: randomUUID(),
       repository: 'local/fixture',
+      pipeline: 'coding-review',
       task_class: 'chore',
       instruction: 'time-skipping test',
     };
@@ -90,7 +100,9 @@ describe('agentRunWorkflow retry and timeout paths (time-skipping)', () => {
   async function runWorkflow(
     task: TaskRequest,
     overrides: {
-      initializeRun?: (task: TaskRequest) => Promise<RunContext>;
+      initializeRun?: (
+        task: TaskRequest,
+      ) => Promise<{ context: RunContext; pipeline: PipelineDefinition }>;
       runAgent?: (input: { role: string; context: RunContext }) => Promise<AgentResult>;
       validatePatch?: (input: { context: RunContext }) => Promise<ValidationResult>;
       publishRunSummary?: (input: Record<string, unknown>) => Promise<Record<string, unknown>>;
@@ -99,11 +111,17 @@ describe('agentRunWorkflow retry and timeout paths (time-skipping)', () => {
     const taskQueue = 'agent-default';
     const validationTaskQueue = 'tool-validation';
 
-    const defaultInitializeRun = async (t: TaskRequest): Promise<RunContext> => ({
-      run_id: t.run_id ?? 'test-run',
-      repository: t.repository,
-      task_class: t.task_class,
-      instruction: t.instruction,
+    const defaultInitializeRun = async (
+      t: TaskRequest,
+    ): Promise<{ context: RunContext; pipeline: PipelineDefinition }> => ({
+      context: {
+        run_id: t.run_id ?? 'test-run',
+        repository: t.repository,
+        pipeline: t.pipeline,
+        task_class: t.task_class,
+        instruction: t.instruction,
+      },
+      pipeline: codingReviewPipeline,
     });
 
     const defaultRunAgent = async ({
@@ -124,13 +142,14 @@ describe('agentRunWorkflow retry and timeout paths (time-skipping)', () => {
         runAgent: overrides.runAgent ?? defaultRunAgent,
         publishRunSummary:
           overrides.publishRunSummary ??
-          (async (input: Record<string, unknown>) => ({
-            run_id: (input.context as RunContext).run_id,
-            status: 'succeeded',
-            plan: input.plan,
-            code: input.code,
-            validation: input.validation,
-            review: input.review,
+          (async (input: {
+            context: RunContext;
+            results: Record<string, AgentResult | ValidationResult>;
+            status: 'succeeded' | 'failed' | 'cancelled';
+          }) => ({
+            run_id: input.context.run_id,
+            status: input.status,
+            steps: input.results,
             artifact_manifest: [],
           })),
       },
@@ -215,11 +234,17 @@ describe('agentRunWorkflow retry and timeout paths (time-skipping)', () => {
       taskQueue,
       workflowsPath: join(__dirname, '..', 'index.ts'),
       activities: {
-        initializeRun: async (t: TaskRequest) => ({
-          run_id: t.run_id ?? 'test-run',
-          repository: t.repository,
-          task_class: t.task_class,
-          instruction: t.instruction,
+        initializeRun: async (
+          t: TaskRequest,
+        ): Promise<{ context: RunContext; pipeline: PipelineDefinition }> => ({
+          context: {
+            run_id: t.run_id ?? 'test-run',
+            repository: t.repository,
+            pipeline: t.pipeline,
+            task_class: t.task_class,
+            instruction: t.instruction,
+          },
+          pipeline: codingReviewPipeline,
         }),
         runAgent: async ({ role, context }: { role: string; context: RunContext }) => {
           if (role === 'planner') {
@@ -234,13 +259,14 @@ describe('agentRunWorkflow retry and timeout paths (time-skipping)', () => {
           }
           return successResult(role, context);
         },
-        publishRunSummary: async (input: Record<string, unknown>) => ({
-          run_id: (input.context as RunContext).run_id,
-          status: 'succeeded',
-          plan: input.plan,
-          code: input.code,
-          validation: input.validation,
-          review: input.review,
+        publishRunSummary: async (input: {
+          context: RunContext;
+          results: Record<string, AgentResult | ValidationResult>;
+          status: 'succeeded' | 'failed' | 'cancelled';
+        }) => ({
+          run_id: input.context.run_id,
+          status: input.status,
+          steps: input.results,
           artifact_manifest: [],
         }),
       },

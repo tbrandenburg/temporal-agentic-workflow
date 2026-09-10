@@ -6,10 +6,17 @@
 import { randomUUID } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { TaskRequest } from '@poc/agent-contracts';
+import type {
+  AgentResult,
+  PipelineDefinition,
+  RunContext,
+  TaskRequest,
+  ValidationResult,
+} from '@poc/agent-contracts';
 import { historyToJSON } from '@temporalio/common/lib/proto-utils';
 import { TestWorkflowEnvironment } from '@temporalio/testing';
 import { Worker } from '@temporalio/worker';
+import { registry } from '../../../pipelines/registry';
 
 async function main(): Promise<void> {
   const env = await TestWorkflowEnvironment.createTimeSkipping();
@@ -28,9 +35,17 @@ async function main(): Promise<void> {
     const taskQueue = 'agent-default';
     const validationTaskQueue = 'tool-validation';
 
+    const pipeline: PipelineDefinition = registry['coding-review'];
+    if (!pipeline) {
+      throw new Error('pipelines/registry.ts has no "coding-review" entry');
+    }
+
     // Fixture activities mirror the real `@poc/worker` implementations'
     // *shapes* only (mock-mode-equivalent, deterministic, instant) — the
     // fixture's purpose is a recorded history, not activity-logic coverage.
+    // `initializeRun` resolves the REAL `coding-review` `PipelineDefinition`
+    // from the registry (not a hand-rolled one) so this fixture stays
+    // honest about what the actual registry/interpreter execute.
     const worker = await Worker.create({
       connection: env.nativeConnection,
       namespace: env.namespace,
@@ -38,12 +53,22 @@ async function main(): Promise<void> {
       workflowsPath: require.resolve('../src/index'),
       activities: {
         initializeRun: async (task: TaskRequest) => ({
-          run_id: task.run_id ?? 'fixture-run',
-          repository: task.repository,
-          task_class: task.task_class,
-          instruction: task.instruction,
+          context: {
+            run_id: task.run_id ?? 'fixture-run',
+            repository: task.repository,
+            pipeline: task.pipeline,
+            task_class: task.task_class,
+            instruction: task.instruction,
+          } satisfies RunContext,
+          pipeline,
         }),
-        runAgent: async ({ role, context }: { role: string; context: { run_id: string } }) => ({
+        runAgent: async ({
+          role,
+          context,
+        }: {
+          role: string;
+          context: RunContext;
+        }): Promise<AgentResult> => ({
           run_id: context.run_id,
           agent: role,
           status: 'success',
@@ -57,13 +82,14 @@ async function main(): Promise<void> {
             exit_code: 0,
           },
         }),
-        publishRunSummary: async (input: Record<string, unknown>) => ({
-          run_id: (input.context as { run_id: string }).run_id,
-          status: 'succeeded',
-          plan: input.plan,
-          code: input.code,
-          validation: input.validation,
-          review: input.review,
+        publishRunSummary: async (input: {
+          context: RunContext;
+          results: Record<string, AgentResult | ValidationResult>;
+          status: 'succeeded' | 'failed' | 'cancelled';
+        }) => ({
+          run_id: input.context.run_id,
+          status: input.status,
+          steps: input.results,
           artifact_manifest: [],
         }),
       },
@@ -76,7 +102,7 @@ async function main(): Promise<void> {
       namespace: env.namespace,
       taskQueue: validationTaskQueue,
       activities: {
-        validatePatch: async ({ context }: { context: { run_id: string } }) => ({
+        validatePatch: async ({ context }: { context: RunContext }): Promise<ValidationResult> => ({
           run_id: context.run_id,
           status: 'passed',
           steps: [],
@@ -89,6 +115,7 @@ async function main(): Promise<void> {
     const task: TaskRequest = {
       run_id: randomUUID(),
       repository: 'local/fixture',
+      pipeline: 'coding-review',
       task_class: 'chore',
       instruction: 'Generate a replay fixture history.',
     };

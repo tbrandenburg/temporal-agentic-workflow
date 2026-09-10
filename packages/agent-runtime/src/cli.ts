@@ -2,7 +2,7 @@
 import { parseArgs } from 'node:util';
 import type { AgentInput, AgentRole } from '@poc/agent-contracts';
 import { runOpencode } from './opencode-adapter';
-import { composePrompt } from './prompt-composer';
+import { composePrompt, readPromptFile } from './prompt-composer';
 import { normalizeAgentResult } from './result-normalizer';
 
 const ROLES: readonly AgentRole[] = ['planner', 'coder', 'reviewer'];
@@ -55,12 +55,15 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
     context: {
       run_id: args['run-id'] as string,
       repository: args.repository as string,
+      pipeline: 'coding-review',
       task_class: args['task-class'] as AgentInput['context']['task_class'],
       instruction: args.instruction as string,
     },
+    promptFile: `pipelines/coding-review/prompts/${args.role}.md`,
   };
 
-  const prompt = composePrompt(input);
+  const rolePrompt = readPromptFile(input.promptFile);
+  const prompt = composePrompt(input, rolePrompt);
   const adapterOptions: Parameters<typeof runOpencode>[1] = { dir: args.dir as string };
   if (args.model) adapterOptions.model = args.model;
   if (args['timeout-ms']) adapterOptions.timeoutMs = Number(args['timeout-ms']);

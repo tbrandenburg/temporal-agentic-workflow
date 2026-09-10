@@ -8,11 +8,7 @@
     },
     "agent": {
       "type": "string",
-      "enum": [
-        "planner",
-        "coder",
-        "reviewer"
-      ]
+      "minLength": 1
     },
     "status": {
       "type": "string",

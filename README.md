@@ -23,12 +23,22 @@ demonstrations and a full observability pass in the Temporal Web UI — see
 [`docs/evidence/`](docs/evidence/) for captured runs, histories, and screenshots.
 No PRs, target-repository writes, or deployments are performed by this workflow.
 
+The workflow is a **generic pipeline interpreter**: `packages/workflows`, `packages/worker`,
+`packages/agent-runtime`, and `packages/agent-contracts` carry no pipeline-specific knowledge
+(role names, prompt filenames, step counts). Named pipelines — their steps, agents, and
+prompts — are declared as data under [`pipelines/`](pipelines/); adding a new pipeline
+requires zero core changes. See [`docs/PROJECTS.md`](docs/PROJECTS.md) for the refactor plan
+and rationale. Two pipelines ship today: `coding-review` (the original
+planner→coder→validate→reviewer flow, described below) and `summarizer-critic` (a 2-step,
+non-code pipeline proving the interpreter is genuinely generic).
+
 ## Architecture at a glance
 
 ```
-POST /runs ──▶ agentRunWorkflow (Temporal)
+POST /runs { pipeline: "coding-review", ... } ──▶ agentRunWorkflow (Temporal)
                  │
-                 ├─ initializeRun          (agent-default queue)
+                 ├─ initializeRun          (agent-default queue — resolves the named
+                 │                          pipeline from the `pipelines/` registry)
                  ├─ runAgent(planner)      (agent-default queue, real `opencode run`)
                  ├─ runAgent(coder)        (agent-default queue, real `opencode run`)
                  ├─ validatePatch          (tool-validation queue: apply → allowlist →
@@ -37,25 +47,31 @@ POST /runs ──▶ agentRunWorkflow (Temporal)
                  └─ publishRunSummary      (agent-default queue, presigned artifact URLs)
 ```
 
-The workflow decides the run outcome from `validatePatch`'s result — the reviewer's
-commentary is captured but can never flip a failed deterministic gate to a pass.
+This is `coding-review`'s timeline — the interpreter runs whatever steps the requested
+`pipeline` declares (see `GET /pipelines` for the full list), in the same generic loop.
+
+The workflow decides the run outcome from the pipeline's `validation`-kind step (if any) —
+the reviewer's commentary is captured but can never flip a failed deterministic gate to a
+pass. A pipeline with no validation step (like `summarizer-critic`) has no hard gate and
+always completes `succeeded`.
 
 ## Repository layout
 
 | Path | Purpose |
 |---|---|
-| `apps/run-api` | Fastify API: `POST /runs`, `GET /runs/:id`, `POST /runs/:id/cancel` |
-| `packages/workflows` | The Temporal workflow definition, activity options, queries |
+| `apps/run-api` | Fastify API: `POST /runs`, `GET /runs/:id`, `POST /runs/:id/cancel`, `GET /pipelines` |
+| `packages/workflows` | The generic pipeline-interpreter workflow, activity options, queries |
 | `packages/worker` | Node workers (`agent-default`, `tool-validation`), activities, payload codec |
 | `packages/agent-runtime` | `opencode` adapter, prompt composer, result normalizer, mock/real modes |
-| `packages/agent-contracts` | Zod contracts (`TaskRequest`, `AgentResult`, `ValidationResult`, ...) |
+| `packages/agent-contracts` | Zod contracts (`TaskRequest`, `PipelineDefinition`, `AgentResult`, `ValidationResult`, ...) |
 | `packages/agent-tools` | Ephemeral workspace, patch apply, allowlist, format/lint/test, secret scan |
 | `packages/artifact-store` | S3/MinIO client + `artifact://` URI helpers |
-| `prompts` | Role prompts (planner, coder, reviewer) |
+| `pipelines` | Project-specific pipeline registry + definitions (`coding-review`, `summarizer-critic`), each with its own `prompts/` |
 | `infra/temporal` | Local Temporal stack (Docker Compose): Postgres, Temporal, UI, MinIO |
 | `schemas` | Generated JSON Schemas (from the Zod contracts, drift-checked) |
-| `fixtures/sample-repo` | Fixture repo the coder role edits during validation |
-| `docs/PLAN.md` / `docs/INITIAL.md` | The implementation plan and original brief |
+| `fixtures/sample-repo` | Fixture repo a patch-producing step (e.g. `coder`) edits during validation |
+| `docs/PLAN.md` / `docs/INITIAL.md` | The original implementation plan and brief (Phases 0–6) |
+| `docs/PROJECTS.md` | The core/pipeline-interpreter refactor plan (this generic architecture) |
 | `docs/evidence` | Captured run output, workflow histories, and UI screenshots |
 
 ## Prerequisites

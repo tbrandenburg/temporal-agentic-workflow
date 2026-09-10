@@ -1,7 +1,9 @@
 import type {
   AgentInput,
   AgentResult,
+  PipelineDefinition,
   RunContext,
+  RunOutcome,
   RunSummary,
   TaskRequest,
   ValidationResult,
@@ -17,19 +19,24 @@ export interface ValidatePatchInput {
 }
 
 /**
- * `publishRunSummary` input — PLAN §5.1
- * (`activities.publishRunSummary({ context, plan, code, validation, review })`).
+ * `publishRunSummary` input — generalized for the pipeline interpreter
+ * (PLAN Step 4 + this step's documented deviation): the fixed
+ * `plan`/`code`/`validation`/`review` fields are replaced by a generic
+ * `results` map keyed by pipeline step id. `Record`, not `Map`, because
+ * Temporal activity arguments must be JSON-serializable and `Map` is not.
+ * `status` is computed once by the workflow (from the last validation-kind
+ * step's status, or `succeeded` if there is none) and passed through
+ * explicitly, so `publishRunSummary` doesn't need to reach into `results`
+ * and guess which entry was the "validation" step.
  */
 export interface PublishRunSummaryInput {
   context: RunContext;
-  plan: AgentResult;
-  code: AgentResult;
-  validation: ValidationResult;
-  review: AgentResult;
+  results: Record<string, AgentResult | ValidationResult>;
+  status: RunOutcome;
 }
 
 export interface AgentDefaultActivities {
-  initializeRun(task: TaskRequest): Promise<RunContext>;
+  initializeRun(task: TaskRequest): Promise<{ context: RunContext; pipeline: PipelineDefinition }>;
   runAgent(input: AgentInput): Promise<AgentResult>;
   publishRunSummary(input: PublishRunSummaryInput): Promise<RunSummary>;
 }
@@ -58,6 +65,7 @@ const { initializeRun } = proxyActivities<AgentDefaultActivities>({
     initialInterval: '1 second',
     backoffCoefficient: 2,
     maximumAttempts: 3,
+    nonRetryableErrorTypes: ['UnknownPipelineError'],
   },
 });
 

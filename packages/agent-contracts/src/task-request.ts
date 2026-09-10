@@ -9,6 +9,7 @@ export type TaskClass = z.infer<typeof taskClassSchema>;
 export const taskRequestSchema = z.object({
   run_id: z.string().ulid().optional(),
   repository: z.string().min(1),
+  pipeline: z.string().min(1),
   task_class: taskClassSchema,
   instruction: z.string().min(1).max(8000),
   requested_model: z.string().min(1).optional(),
